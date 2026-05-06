@@ -5,8 +5,8 @@ import {
   createMedico,
   updateMedico,
   deleteMedico,
-} from "../controllers/medicos.controller.js";
-import { validarCampos } from "../middleware/validarCampos.js";
+} from "../../controllers/medicos.controller.js";
+import { validarCampos } from "../../middleware/validarCampos.js";
 
 const router = Router();
 

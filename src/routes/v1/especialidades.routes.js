@@ -1,16 +1,25 @@
 import { Router } from "express";
-import { check, param } from "express-validator";
-import {
-  getEspecialidades,
-  createEspecialidad,
-  updateEspecialidad,
-  deleteEspecialidad,
-} from "../controllers/especialidades.controller.js";
-import { validarCampos } from "../middleware/validarCampos.js";
+import { check, param } from "express-validator"; 
+import { validarCampos } from "../../middleware/validarCampos.js";
+import EspecialidadesController from "../../controllers/especialidades.controller.js";
 
 const router = Router();
+const especialidadesController = new EspecialidadesController()
 
-router.get("/", getEspecialidades);
+router.get("/", especialidadesController.getAll);
+
+router.get(
+  "/:id",
+  [
+    param("id")
+      .notEmpty()
+      .withMessage("El ID de especialidad es obligatorio")
+      .isInt({ min: 1 })
+      .withMessage("El ID de especialidad debe ser un entero positivo"),
+    validarCampos,
+  ],
+  especialidadesController.getById,
+);
 
 router.post(
   "/",
@@ -18,7 +27,7 @@ router.post(
     check("nombre").trim().notEmpty().withMessage("El nombre es obligatorio"),
     validarCampos,
   ],
-  createEspecialidad,
+  especialidadesController.create,
 );
 
 router.put(
@@ -37,7 +46,7 @@ router.put(
       .withMessage("El nombre debe tener entre 2 y 100 caracteres"),
     validarCampos,
   ],
-  updateEspecialidad,
+  especialidadesController.update,
 );
 
 router.delete(
@@ -50,7 +59,7 @@ router.delete(
       .withMessage("El ID de especialidad debe ser un entero positivo"),
     validarCampos,
   ],
-  deleteEspecialidad,
+  especialidadesController.delete,
 );
 
 export default router;

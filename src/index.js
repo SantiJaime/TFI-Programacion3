@@ -1,6 +1,6 @@
 import express from "express";
-import especialidadesRoutes from "./routes/especialidades.routes.js";
-import medicosRoutes from "./routes/medicos.routes.js";
+import especialidadesRoutes from "./routes/v1/especialidades.routes.js";
+import medicosRoutes from "./routes/v1/medicos.routes.js";
 import { testConnection } from "./database/test-connection.js";
 
 process.loadEnvFile();
