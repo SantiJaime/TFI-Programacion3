@@ -13,7 +13,7 @@ export default class EspecialidadesController {
       console.error("Error al obtener especialidades:", error);
       return res
         .status(500)
-        .send({ ok: false, msg: "Error interno del servidor" });
+        .send({ ok: false, msg: "Error al obtener especialidades" });
     }
   };
 
@@ -31,7 +31,7 @@ export default class EspecialidadesController {
       console.error("Error al obtener especialidad:", error);
       return res
         .status(500)
-        .send({ ok: false, msg: "Error interno del servidor" });
+        .send({ ok: false, msg: "Error al obtener especialidad" });
     }
   };
 

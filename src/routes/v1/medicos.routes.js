@@ -8,6 +8,19 @@ const medicosController = new MedicosController();
 
 router.get("/", medicosController.getAll);
 
+router.get(
+  "/:id_medico",
+  [
+    param("id_medico")
+      .notEmpty()
+      .withMessage("El ID de médico es obligatorio")
+      .isInt({ min: 1 })
+      .withMessage("El ID de médico debe ser un entero positivo"),
+    validarCampos,
+  ],
+  medicosController.getById,
+);
+
 router.post(
   "/",
   [
@@ -37,13 +50,13 @@ router.post(
       .withMessage("El valor de consulta debe ser un número mayor o igual a 0"),
     validarCampos,
   ],
-  medicosController.create
+  medicosController.create,
 );
 
 router.put(
-  "/:id",
+  "/:id_medico",
   [
-    param("id")
+    param("id_medico")
       .notEmpty()
       .withMessage("El ID de médico es obligatorio")
       .isInt({ min: 1 })
@@ -74,20 +87,20 @@ router.put(
       .withMessage("El valor de consulta debe ser un número mayor o igual a 0"),
     validarCampos,
   ],
-  medicosController.update
+  medicosController.update,
 );
 
 router.delete(
-  "/:id",
+  "/:id_medico",
   [
-    param("id")
+    param("id_medico")
       .notEmpty()
       .withMessage("El ID de médico es obligatorio")
       .isInt({ min: 1 })
       .withMessage("El ID de médico debe ser un entero positivo"),
     validarCampos,
   ],
-  medicosController.delete
+  medicosController.delete,
 );
 
 export default router;

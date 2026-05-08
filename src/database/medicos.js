@@ -2,16 +2,16 @@ import pool from "./database.config.js";
 
 export default class Medicos {
   getAll = async () => {
-    const [rows] = await pool.execute("SELECT * FROM medicos");
-    return rows;
+    const [medicos] = await pool.execute("SELECT * FROM medicos");
+    return medicos;
   };
 
   getById = async (id) => {
-    const [row] = await pool.execute(
+    const [medico] = await pool.execute(
       "SELECT * FROM medicos WHERE id_medico = ?",
       [id]
     );
-    return row;
+    return medico;
   };
 
   create = async (data) => {
@@ -37,6 +37,9 @@ export default class Medicos {
       "DELETE FROM medicos WHERE id_medico = ?",
       [id]
     );
-    return result;
+    return {
+      deleted: result.affectedRows > 0,
+      affectedRows: result.affectedRows,
+    };
   };
 }
