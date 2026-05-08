@@ -1,16 +1,25 @@
 import { Router } from "express";
 import { check, param } from "express-validator";
-import {
-  getMedicos,
-  createMedico,
-  updateMedico,
-  deleteMedico,
-} from "../../controllers/medicos.controller.js";
+import MedicosController from "../../controllers/medicos.controller.js";
 import { validarCampos } from "../../middleware/validarCampos.js";
 
 const router = Router();
+const medicosController = new MedicosController();
 
-router.get("/", getMedicos);
+router.get("/", medicosController.getAll);
+
+router.get(
+  "/:id_medico",
+  [
+    param("id_medico")
+      .notEmpty()
+      .withMessage("El ID de médico es obligatorio")
+      .isInt({ min: 1 })
+      .withMessage("El ID de médico debe ser un entero positivo"),
+    validarCampos,
+  ],
+  medicosController.getById,
+);
 
 router.post(
   "/",
@@ -41,13 +50,13 @@ router.post(
       .withMessage("El valor de consulta debe ser un número mayor o igual a 0"),
     validarCampos,
   ],
-  createMedico,
+  medicosController.create,
 );
 
 router.put(
-  "/:id",
+  "/:id_medico",
   [
-    param("id")
+    param("id_medico")
       .notEmpty()
       .withMessage("El ID de médico es obligatorio")
       .isInt({ min: 1 })
@@ -78,20 +87,20 @@ router.put(
       .withMessage("El valor de consulta debe ser un número mayor o igual a 0"),
     validarCampos,
   ],
-  updateMedico,
+  medicosController.update,
 );
 
 router.delete(
-  "/:id",
+  "/:id_medico",
   [
-    param("id")
+    param("id_medico")
       .notEmpty()
       .withMessage("El ID de médico es obligatorio")
       .isInt({ min: 1 })
       .withMessage("El ID de médico debe ser un entero positivo"),
     validarCampos,
   ],
-  deleteMedico,
+  medicosController.delete,
 );
 
 export default router;

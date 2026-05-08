@@ -1,6 +1,6 @@
 import express from "express";
-import especialidadesRoutes from "./routes/v1/especialidades.routes.js";
-import medicosRoutes from "./routes/v1/medicos.routes.js";
+import v1EspecialidadesRouter from "./routes/v1/especialidades.routes.js";
+import v1MedicosRouter from "./routes/v1/medicos.routes.js";
 import { testConnection } from "./database/test-connection.js";
 
 process.loadEnvFile();
@@ -11,8 +11,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.use("/api/especialidades", especialidadesRoutes);
-app.use("/api/medicos", medicosRoutes);
+app.get("/", (req, res) => {
+  res.status(200).send({ estado: true, msg: "API en funcionamiento" });
+});
+
+app.use("/api/v1/especialidades", v1EspecialidadesRouter);
+app.use("/api/v1/medicos", v1MedicosRouter);
 
 app.listen(PORT, async () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
