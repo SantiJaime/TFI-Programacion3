@@ -1,16 +1,12 @@
 import { Router } from "express";
 import { check, param } from "express-validator";
-import {
-  getMedicos,
-  createMedico,
-  updateMedico,
-  deleteMedico,
-} from "../../controllers/medicos.controller.js";
+import MedicosController from "../../controllers/medicos.controller.js";
 import { validarCampos } from "../../middleware/validarCampos.js";
 
 const router = Router();
+const medicosController = new MedicosController();
 
-router.get("/", getMedicos);
+router.get("/", medicosController.getAll);
 
 router.post(
   "/",
@@ -41,7 +37,7 @@ router.post(
       .withMessage("El valor de consulta debe ser un número mayor o igual a 0"),
     validarCampos,
   ],
-  createMedico,
+  medicosController.create
 );
 
 router.put(
@@ -78,7 +74,7 @@ router.put(
       .withMessage("El valor de consulta debe ser un número mayor o igual a 0"),
     validarCampos,
   ],
-  updateMedico,
+  medicosController.update
 );
 
 router.delete(
@@ -91,7 +87,7 @@ router.delete(
       .withMessage("El ID de médico debe ser un entero positivo"),
     validarCampos,
   ],
-  deleteMedico,
+  medicosController.delete
 );
 
 export default router;
