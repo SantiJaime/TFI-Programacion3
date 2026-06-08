@@ -28,6 +28,7 @@ const swaggerDocument = JSON.parse(
 app.use(cors());
 app.use(morgan("dev"));
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 app.use("/api/especialidades", especialidadesRoutes);
 app.use("/api/medicos", medicosRoutes);
