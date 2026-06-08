@@ -9,13 +9,12 @@ export default class TurnosReservasService {
   getTurnosPorRol = (usuarioLogueado) => {
     const { rol, id_usuario } = usuarioLogueado;
 
-    if (rol === 1) { // Médico: Solo ve sus turnos asignados
+    if (rol === 1) {
       return this.turnosReservas.getTurnosPropiosMedico(id_usuario);
     }
-    if (rol === 2) { // Paciente: Solo ve sus reservas solicitadas
+    if (rol === 2) {
       return this.turnosReservas.getTurnosPropiosPaciente(id_usuario);
     }
-    // Administrador (Rol 3): Ve absolutamente todos los turnos del sistema
     return this.turnosReservas.getAll();
   };
 

@@ -7,7 +7,6 @@ import { validarJWT, verificarRol } from "../../middleware/validarJWT.js";
 const router = Router();
 const turnosController = new TurnosReservasController();
 
-// Todos los roles logueados (1, 2 y 3) pueden consultar este endpoint, pero el controlador filtrará qué ven.
 router.get("/", [validarJWT], turnosController.getAll);
 
 router.get(
@@ -20,7 +19,6 @@ router.get(
   turnosController.getById
 );
 
-// Crear reservas: Permitido para Pacientes (2) y Administradores (3)
 router.post(
   "/",
   [
@@ -36,7 +34,6 @@ router.post(
   turnosController.create
 );
 
-// Modificar reservas/Atender: Permitido para Médicos (1) y Administradores (3)
 router.put(
   "/:id",
   [
@@ -53,7 +50,6 @@ router.put(
   turnosController.update
 );
 
-// Cancelar reservas (Soft delete): Solo permitido para Administradores (3)
 router.delete(
   "/:id",
   [

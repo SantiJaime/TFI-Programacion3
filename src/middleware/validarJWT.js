@@ -12,7 +12,7 @@ export const validarJWT = (req, res, next) => {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET || "secret_key");
-    req.usuario = payload; // Guarda en la petición el id_usuario y el rol
+    req.usuario = payload;
     next();
   } catch (error) {
     return res.status(401).send({
