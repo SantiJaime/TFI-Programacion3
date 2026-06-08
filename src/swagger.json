@@ -1,0 +1,48 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Sistema Gestión de Turnos",
+    "version": "1.0.0",
+    "description": "Documentación técnica del backend de la aplicación de turnos."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api"
+    }
+  ],
+  "paths": {
+    "/usuarios/login": {
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Autenticación de usuarios",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "contrasenia": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Login exitoso con retorno de Token JWT" },
+          "401": { "description": "Credenciales inválidas" }
+        }
+      }
+    },
+    "/turnos": {
+      "get": {
+        "tags": ["Turnos"],
+        "summary": "Obtener todos los turnos activos",
+        "responses": {
+          "200": { "description": "Listado de turnos exitoso" }
+        }
+      }
+    }
+  }
+}
