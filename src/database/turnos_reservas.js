@@ -8,30 +8,28 @@ export default class TurnosReservas {
     return rows;
   };
 
+  getTurnosPropiosMedico = async (idUsuario) => {
+    const [rows] = await pool.execute(
+      "SELECT tr.* FROM turnos_reservas tr JOIN medicos m ON tr.id_medico = m.id_medico WHERE m.id_usuario = ? AND tr.activo = 1",
+      [idUsuario]
+    );
+    return rows;
+  };
+
+  getTurnosPropiosPaciente = async (idUsuario) => {
+    const [rows] = await pool.execute(
+      "SELECT tr.* FROM turnos_reservas tr JOIN pacientes p ON tr.id_paciente = p.id_paciente WHERE p.id_usuario = ? AND tr.activo = 1",
+      [idUsuario]
+    );
+    return rows;
+  };
+
   getById = async (id) => {
     const [row] = await pool.execute(
       "SELECT * FROM turnos_reservas WHERE id_turno_reserva = ? AND activo = 1",
       [id]
     );
     return row;
-  };
-
-  create = async (data) => {
-    const { id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido } = data;
-    const [result] = await pool.execute(
-      "INSERT INTO turnos_reservas (id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido) VALUES (?, ?, ?, ?, ?, ?)",
-      [id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido || 0]
-    );
-    return result;
-  };
-
-  update = async (id, data) => {
-    const { id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido } = data;
-    const [result] = await pool.execute(
-      "UPDATE turnos_reservas SET id_medico = ?, id_paciente = ?, id_obra_social = ?, fecha_hora = ?, valor_total = ?, atentido = ? WHERE id_turno_reserva = ? AND activo = 1",
-      [id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido, id]
-    );
-    return result;
   };
 
   delete = async (id) => {

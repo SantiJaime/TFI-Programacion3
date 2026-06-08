@@ -7,7 +7,8 @@ export default class TurnosReservasController {
 
   getAll = async (req, res) => {
     try {
-      const rows = await this.turnosService.getAll();
+      // Tomamos la identidad del usuario logueado que dejó el middleware validarJWT
+      const rows = await this.turnosService.getTurnosPorRol(req.usuario);
       res.status(200).send({ ok: true, data: rows });
     } catch (error) {
       res.status(500).send({ ok: false, msg: "Error interno del servidor" });
@@ -33,10 +34,14 @@ export default class TurnosReservasController {
       res.status(201).send({
         ok: true,
         msg: "Turno reservado con éxito",
-        data: { id_turno_reserva: result.insertId, ...req.body },
+        data: { 
+          id_turno_reserva: result.insertId, 
+          valor_total: result.valor_total, 
+          ...req.body 
+        },
       });
     } catch (error) {
-      res.status(500).send({ ok: false, msg: "Error al crear la reserva" });
+      res.status(400).send({ ok: false, msg: error.message || "Error al crear la reserva" });
     }
   };
 
@@ -49,7 +54,7 @@ export default class TurnosReservasController {
       }
       res.status(200).send({ ok: true, msg: "Turno actualizado con éxito" });
     } catch (error) {
-      res.status(500).send({ ok: false, msg: "Error al actualizar" });
+      res.status(400).send({ ok: false, msg: error.message || "Error al actualizar" });
     }
   };
 
