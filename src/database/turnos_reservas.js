@@ -39,6 +39,20 @@ export default class TurnosReservas {
     return result;
   };
 
+  marcarAtendido = async (id) => {
+    const [result] = await pool.execute(
+      `
+        UPDATE turnos_reservas
+        SET atentido = 1
+        WHERE id_turno_reserva = ?
+        AND activo = 1
+      `,
+      [id]
+    );
+
+    return result;
+  };
+
   delete = async (id) => {
     const [result] = await pool.execute(
       "UPDATE turnos_reservas SET activo = 0 WHERE id_turno_reserva = ?",

@@ -48,6 +48,17 @@ router.put(
   turnosController.update
 );
 
+router.patch(
+  "/:id/atender",
+  [
+    param("id")
+      .isInt({ min: 1 })
+      .withMessage("El ID debe ser un entero positivo"),
+    validarCampos,
+  ],
+  turnosController.marcarAtendido
+);
+
 router.delete(
   "/:id",
   [param("id").isInt({ min: 1 }).withMessage("El ID debe ser un entero positivo"), validarCampos],

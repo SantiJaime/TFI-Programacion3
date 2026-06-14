@@ -25,6 +25,10 @@ export default class TurnosReservasService {
     return this.turnosReservas.update(id, data);
   };
 
+  marcarAtendido = (id) => {
+  return this.turnosReservas.marcarAtendido(id);
+};
+
   delete = (id) => {
     return this.turnosReservas.delete(id);
   };
