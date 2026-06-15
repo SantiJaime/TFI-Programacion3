@@ -70,13 +70,43 @@ export default class TurnosReservasController {
         return res.status(404).send({ ok: false, msg: "Turno no encontrado" });
       }
       res.status(200).send({ ok: true, msg: "Turno actualizado con éxito" });
+      } catch (error) {
+        console.error(`Error en update TurnosReservas (ID: ${req.params.id}):`, error);
+        res.status(500).send({ ok: false, msg: "Error al intentar modificar el turno" });
+      }
+    };
+
+    marcarAtendido = async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const result = await this.turnosService.marcarAtendido(id);
+
+      if (result.affectedRows === 0) {
+        return res.status(404).send({
+          ok: false,
+          msg: "Turno no encontrado",
+        });
+      }
+
+      res.status(200).send({
+        ok: true,
+        msg: "Turno marcado como atendido",
+      });
     } catch (error) {
-      console.error(`Error en update TurnosReservas (ID: ${req.params.id}):`, error);
-      res.status(500).send({ ok: false, msg: "Error al intentar modificar el turno" });
+      console.error(
+        `Error al marcar turno como atendido (ID: ${req.params.id}):`,
+        error
+      );
+
+      res.status(500).send({
+        ok: false,
+        msg: "Error al marcar el turno como atendido",
+      });
     }
   };
 
-  delete = async (req, res) => {
+    delete = async (req, res) => {
     try {
       const { id } = req.params;
       const result = await this.turnosService.delete(id);
