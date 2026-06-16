@@ -599,8 +599,8 @@
           },
           "fecha_hora": {
             "type": "string",
-            "format": "date-time",
-            "example": "2026-06-15 10:00:00"
+            "example": "2026-06-15 10:00:00",
+            "description": "Formato: YYYY-MM-DD HH:MM:SS"
           },
           "valor_total": {
             "type": "number",
@@ -646,8 +646,8 @@
           },
           "fecha_hora": {
             "type": "string",
-            "format": "date-time",
-            "example": "2026-06-15 10:00:00"
+            "example": "2026-06-15 10:00:00",
+            "description": "Formato: YYYY-MM-DD HH:MM:SS"
           },
           "atentido": {
             "type": "integer",
@@ -751,8 +751,8 @@
                 "$ref": "#/components/schemas/LoginInput"
               },
               "example": {
-                "email": "admin@clinica.com",
-                "contrasenia": "admin123"
+                "email": "ferben@correo.com",
+                "contrasenia": "ferben"
               }
             }
           }
@@ -2509,26 +2509,14 @@
         }
       }
     },
-    "/turnos/paciente/{id}": {
+    "/turnos/paciente": {
       "get": {
         "tags": [
           "Turnos"
         ],
-        "summary": "Obtener turnos de un paciente",
-        "description": "Retorna los turnos activos de un paciente filtrando por `id_usuario`. Devuelve únicamente `fecha_hora` y `valor_total` de cada turno.",
+        "summary": "Obtener mis turnos (paciente)",
+        "description": "Retorna los turnos activos del paciente logueado. El `id_usuario` se obtiene automáticamente del token JWT.",
         "operationId": "getPatientAppointments",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID del usuario (id_usuario) asociado al paciente",
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Turnos del paciente obtenidos con éxito",
@@ -2549,7 +2537,7 @@
                           "fecha_hora": {
                             "type": "string",
                             "format": "date-time",
-                            "example": "2026-06-15T10:00:00.000Z"
+                            "example": "2026-06-15 10:00:00"
                           },
                           "valor_total": {
                             "type": "number",
@@ -2563,9 +2551,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
           },
           "404": {
             "description": "No se encontraron turnos para el paciente",
@@ -2587,26 +2572,14 @@
         }
       }
     },
-    "/turnos/medico/{id}": {
+    "/turnos/medico": {
       "get": {
         "tags": [
           "Turnos"
         ],
-        "summary": "Obtener turnos de un médico",
-        "description": "Retorna los turnos activos de un médico filtrando por `id_usuario`. Devuelve únicamente `fecha_hora` y `valor_total` de cada turno.",
+        "summary": "Obtener mis turnos (médico)",
+        "description": "Retorna los turnos activos del médico logueado. El `id_usuario` se obtiene automáticamente del token JWT.",
         "operationId": "getDoctorAppointments",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID del usuario (id_usuario) asociado al médico",
-            "schema": {
-              "type": "integer",
-              "minimum": 1
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Turnos del médico obtenidos con éxito",
@@ -2627,7 +2600,7 @@
                           "fecha_hora": {
                             "type": "string",
                             "format": "date-time",
-                            "example": "2026-06-15T10:00:00.000Z"
+                            "example": "2026-06-15 10:00:00"
                           },
                           "valor_total": {
                             "type": "number",
@@ -2641,9 +2614,6 @@
                 }
               }
             }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
           },
           "404": {
             "description": "No se encontraron turnos para el médico",
@@ -2742,7 +2712,7 @@
               "example": {
                 "id_medico": 1,
                 "id_paciente": 3,
-                "fecha_hora": "2026-06-15T10:00:00.000Z",
+                "fecha_hora": "2026-06-15 10:00:00",
                 "atentido": 1
               }
             }

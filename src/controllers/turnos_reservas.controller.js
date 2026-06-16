@@ -28,32 +28,28 @@ export default class TurnosReservasController {
 
   getDoctorAppointments = async (req, res) => {
     try {
-      const { id } = req.params;
+      const id = req.user.id_usuario;
       const rows = await this.turnosService.getDoctorAppointments(id);
       if (rows.length === 0) {
-        return res
-          .status(404)
-          .send({ ok: false, msg: "Turnos del médico no encontrados" });
+        return res.status(404).send({ ok: false, msg: "Turnos del médico no encontrados" });
       }
       res.status(200).send({ ok: true, data: rows });
     } catch (error) {
-      console.error(`Error en getDoctorAppointments (Médico ID: ${req.params.id}):`, error);
+      console.error(`Error en getDoctorAppointments (Usuario ID: ${req.user.id_usuario}):`, error);
       res.status(500).send({ ok: false, msg: "Error al buscar los turnos del médico" });
     }
   };
 
   getPatientAppointments = async (req, res) => {
     try {
-      const { id } = req.params;
+      const id = req.user.id_usuario;
       const rows = await this.turnosService.getPatientAppointments(id);
       if (rows.length === 0) {
-        return res
-          .status(404)
-          .send({ ok: false, msg: "Turnos del paciente no encontrados" });
+        return res.status(404).send({ ok: false, msg: "Turnos del paciente no encontrados" });
       }
       res.status(200).send({ ok: true, data: rows });
     } catch (error) {
-      console.error(`Error en getPatientAppointments (Paciente ID: ${req.params.id}):`, error);
+      console.error(`Error en getPatientAppointments (Usuario ID: ${req.user.id_usuario}):`, error);
       res.status(500).send({ ok: false, msg: "Error al buscar los turnos del paciente" });
     }
   };

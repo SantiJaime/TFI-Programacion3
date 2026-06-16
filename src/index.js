@@ -19,10 +19,6 @@ await testConnection();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const swaggerDocument = JSON.parse(
-  fs.readFileSync(path.resolve("./src/swagger.json"), "utf8"),
-);
-
 app.use(cors({
   origin: process.env.CORS_ORIGIN || "*",
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
@@ -44,8 +40,14 @@ app.use("/api/v1/pacientes", v1PacientesRouter);
 app.use("/api/v1/medicos-obras-sociales", v1MedicosObrasSocialesRouter);
 app.use("/api/v1/turnos", v1TurnosReservasRouter);
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.get("/api-docs/spec.json", (_req, res) => {
+  res.json(JSON.parse(fs.readFileSync(path.resolve("./src/swagger.json"), "utf8")));
+});
 
-app.listen(PORT, async () => {
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(undefined, {
+  swaggerOptions: { url: "/api-docs/spec.json" },
+}));
+
+app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });

@@ -8,22 +8,12 @@ const router = Router();
 const turnosController = new TurnosReservasController();
 
 router.get("/", auth(ROLES.ADMIN), turnosController.getAll);
-router.get("/estadisticas",  turnosController.getEstadisticas);
+router.get("/estadisticas", auth(ROLES.ADMIN), turnosController.getEstadisticas);
 router.get("/reporte-pdf", auth(ROLES.ADMIN), turnosController.descargarReportePDF);
 
-router.get(
-  "/paciente/:id",
-  auth(ROLES.PACIENTE),
-  [param("id").isInt({ min: 1 }).withMessage("El ID debe ser un entero positivo"), validarCampos],
-  turnosController.getPatientAppointments
-);
+router.get("/paciente", auth(ROLES.PACIENTE), turnosController.getPatientAppointments);
 
-router.get(
-  "/medico/:id",
-  auth(ROLES.MEDICO),
-  [param("id").isInt({ min: 1 }).withMessage("El ID debe ser un entero positivo"), validarCampos],
-  turnosController.getDoctorAppointments
-);
+router.get("/medico", auth(ROLES.MEDICO), turnosController.getDoctorAppointments);
 
 router.post(
   "/",
@@ -32,7 +22,7 @@ router.post(
     check("id_medico").isInt({ min: 1 }).withMessage("El id de médico debe ser un entero positivo"),
     check("id_paciente").optional().isInt({ min: 1 }).withMessage("El id de paciente debe ser un entero positivo"),
     check("fecha_hora")
-      .isISO8601().withMessage("La fecha y hora debe ser un formato válido")
+      .matches(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/).withMessage("La fecha y hora debe tener el formato YYYY-MM-DD HH:MM:SS")
       .custom((val) => {
         const hoy = new Date(); hoy.setHours(0,0,0,0);
         if (new Date(val) < hoy) throw new Error("La fecha del turno no puede ser anterior a hoy");
@@ -51,7 +41,7 @@ router.put(
     check("id_medico").isInt({ min: 1 }).withMessage("El id de médico debe ser un entero positivo"),
     check("id_paciente").isInt({ min: 1 }).withMessage("El id de paciente debe ser un entero positivo"),
     check("fecha_hora")
-      .isISO8601().withMessage("La fecha y hora debe ser un formato válido (ISO8601)")
+      .matches(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/).withMessage("La fecha y hora debe tener el formato YYYY-MM-DD HH:MM:SS")
       .custom((val) => {
         const hoy = new Date(); hoy.setHours(0,0,0,0);
         if (new Date(val) < hoy) throw new Error("La fecha del turno no puede ser anterior a hoy");
