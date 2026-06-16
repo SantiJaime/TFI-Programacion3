@@ -31,7 +31,13 @@ router.post(
   [
     check("id_medico").isInt({ min: 1 }).withMessage("El id de médico debe ser un entero positivo"),
     check("id_paciente").optional().isInt({ min: 1 }).withMessage("El id de paciente debe ser un entero positivo"),
-    check("fecha_hora").isISO8601().withMessage("La fecha y hora debe ser un formato válido"),
+    check("fecha_hora")
+      .isISO8601().withMessage("La fecha y hora debe ser un formato válido")
+      .custom((val) => {
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        if (new Date(val) < hoy) throw new Error("La fecha del turno no puede ser anterior a hoy");
+        return true;
+      }),
     validarCampos,
   ],
   turnosController.create
@@ -44,7 +50,13 @@ router.put(
     param("id").isInt({ min: 1 }).withMessage("El ID debe ser un entero positivo"),
     check("id_medico").isInt({ min: 1 }).withMessage("El id de médico debe ser un entero positivo"),
     check("id_paciente").isInt({ min: 1 }).withMessage("El id de paciente debe ser un entero positivo"),
-    check("fecha_hora").isISO8601().withMessage("La fecha y hora debe ser un formato válido (ISO8601)"),
+    check("fecha_hora")
+      .isISO8601().withMessage("La fecha y hora debe ser un formato válido (ISO8601)")
+      .custom((val) => {
+        const hoy = new Date(); hoy.setHours(0,0,0,0);
+        if (new Date(val) < hoy) throw new Error("La fecha del turno no puede ser anterior a hoy");
+        return true;
+      }),
     check("atentido").isInt({ min: 0, max: 1 }).withMessage("El campo atentido debe ser 0 o 1"),
     validarCampos,
   ],
