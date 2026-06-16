@@ -1,0 +1,2752 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Clínica Médica — Sistema de Gestión de Turnos",
+    "version": "1.0.0",
+    "description": "Documentación completa del backend de la API REST para gestión de turnos médicos. Incluye módulos de Usuarios, Especialidades, Médicos, Obras Sociales, Pacientes, relación Médicos-Obras Sociales y Reservas de Turnos.\n\n**Autenticación:** El endpoint `/usuarios/login` devuelve un token JWT que debe enviarse en el header `Authorization: Bearer <token>` en los endpoints que lo requieran."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api/v1",
+      "description": "Servidor de desarrollo local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Usuarios",
+      "description": "Gestión de usuarios del sistema y autenticación"
+    },
+    {
+      "name": "Especialidades",
+      "description": "Gestión de especialidades médicas"
+    },
+    {
+      "name": "Médicos",
+      "description": "Gestión de médicos registrados"
+    },
+    {
+      "name": "Obras Sociales",
+      "description": "Gestión de obras sociales y seguros médicos"
+    },
+    {
+      "name": "Pacientes",
+      "description": "Gestión de pacientes"
+    },
+    {
+      "name": "Médicos-Obras Sociales",
+      "description": "Relación entre médicos y obras sociales aceptadas"
+    },
+    {
+      "name": "Turnos",
+      "description": "Gestión de reservas de turnos médicos"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT obtenido desde el endpoint POST /usuarios/login"
+      }
+    },
+    "schemas": {
+      "SuccessListResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "array",
+            "items": {}
+          }
+        }
+      },
+      "SuccessObjectResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "data": {
+            "type": "object"
+          }
+        }
+      },
+      "SuccessMessageResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "msg": {
+            "type": "string"
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": false
+          },
+          "msg": {
+            "type": "string",
+            "example": "Descripción del error"
+          }
+        }
+      },
+      "ValidationErrorResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": false
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "msg": {
+                  "type": "string"
+                },
+                "param": {
+                  "type": "string"
+                },
+                "location": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      },
+      "Especialidad": {
+        "type": "object",
+        "properties": {
+          "id_especialidad": {
+            "type": "integer",
+            "example": 1
+          },
+          "nombre": {
+            "type": "string",
+            "example": "CARDIOLOGÍA"
+          },
+          "activo": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 1,
+            "description": "1 = activo, 0 = eliminado (soft delete)"
+          }
+        }
+      },
+      "EspecialidadInput": {
+        "type": "object",
+        "required": ["nombre"],
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 100,
+            "example": "Cardiología",
+            "description": "Nombre de la especialidad (se almacena en mayúsculas)"
+          }
+        }
+      },
+      "Medico": {
+        "type": "object",
+        "properties": {
+          "id_medico": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_usuario": {
+            "type": "integer",
+            "example": 3
+          },
+          "id_especialidad": {
+            "type": "integer",
+            "example": 2
+          },
+          "matricula": {
+            "type": "integer",
+            "example": 12345
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true,
+            "example": "Especialista en enfermedades cardíacas con 10 años de experiencia"
+          },
+          "valor_consulta": {
+            "type": "number",
+            "format": "float",
+            "example": 5000.00
+          }
+        }
+      },
+      "MedicoInput": {
+        "type": "object",
+        "required": ["id_usuario", "id_especialidad", "matricula", "valor_consulta"],
+        "properties": {
+          "id_usuario": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 3,
+            "description": "ID del usuario asociado al médico"
+          },
+          "id_especialidad": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2,
+            "description": "ID de la especialidad médica"
+          },
+          "matricula": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 12345,
+            "description": "Número de matrícula profesional (único)"
+          },
+          "descripcion": {
+            "type": "string",
+            "nullable": true,
+            "example": "Especialista en enfermedades cardíacas",
+            "description": "Descripción opcional del médico"
+          },
+          "valor_consulta": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "example": 5000.00,
+            "description": "Valor de la consulta médica"
+          }
+        }
+      },
+      "ObraSocial": {
+        "type": "object",
+        "properties": {
+          "id_obra_social": {
+            "type": "integer",
+            "example": 1
+          },
+          "nombre": {
+            "type": "string",
+            "example": "OSDE"
+          },
+          "descripcion": {
+            "type": "string",
+            "example": "plan210",
+            "description": "Código o descripción corta (2-10 caracteres, en minúsculas)"
+          },
+          "porcentaje_descuento": {
+            "type": "number",
+            "format": "float",
+            "example": 40.0
+          },
+          "es_particular": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 0,
+            "description": "0 = obra social, 1 = particular"
+          },
+          "activo": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 1
+          }
+        }
+      },
+      "ObraSocialInput": {
+        "type": "object",
+        "required": ["nombre", "descripcion", "porcentaje_descuento"],
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "example": "OSDE",
+            "description": "Nombre de la obra social (se almacena en mayúsculas, único)"
+          },
+          "descripcion": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 10,
+            "example": "Plan210",
+            "description": "Descripción corta (2-10 caracteres, se almacena en minúsculas, único)"
+          },
+          "porcentaje_descuento": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "maximum": 100,
+            "example": 40.0,
+            "description": "Porcentaje de descuento que aplica la obra social (0-100)"
+          },
+          "es_particular": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 0,
+            "description": "0 = obra social (default), 1 = particular"
+          }
+        }
+      },
+      "Usuario": {
+        "type": "object",
+        "properties": {
+          "id_usuario": {
+            "type": "integer",
+            "example": 1
+          },
+          "usuario": {
+            "type": "string",
+            "example": "Juan Pérez",
+            "description": "Nombre completo (nombres + apellido concatenados)"
+          },
+          "rol": {
+            "type": "integer",
+            "example": 2,
+            "description": "Rol del usuario en el sistema"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "juan.perez@email.com"
+          },
+          "foto": {
+            "type": "string",
+            "example": "/uploads/foto.jpg",
+            "description": "Ruta de la foto de perfil"
+          },
+          "activo": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 1
+          }
+        }
+      },
+      "UsuarioInput": {
+        "type": "object",
+        "required": ["documento", "apellido", "nombres", "email", "contrasenia", "rol"],
+        "properties": {
+          "documento": {
+            "type": "string",
+            "example": "30123456",
+            "description": "Número de documento (único)"
+          },
+          "apellido": {
+            "type": "string",
+            "example": "Pérez"
+          },
+          "nombres": {
+            "type": "string",
+            "example": "Juan Carlos"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "juan.perez@email.com",
+            "description": "Email válido (único)"
+          },
+          "contrasenia": {
+            "type": "string",
+            "minLength": 6,
+            "example": "securePass123",
+            "description": "Contraseña (mínimo 6 caracteres, se almacena hasheada con SHA2-256)"
+          },
+          "foto_path": {
+            "type": "string",
+            "example": "/uploads/foto.jpg",
+            "description": "Ruta opcional de la foto de perfil"
+          },
+          "rol": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2,
+            "description": "Rol del usuario"
+          }
+        }
+      },
+      "UsuarioUpdateInput": {
+        "type": "object",
+        "required": ["documento", "apellido", "nombres", "email", "rol"],
+        "properties": {
+          "documento": {
+            "type": "string",
+            "example": "30123456"
+          },
+          "apellido": {
+            "type": "string",
+            "example": "Pérez"
+          },
+          "nombres": {
+            "type": "string",
+            "example": "Juan Carlos"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "juan.perez@email.com"
+          },
+          "foto_path": {
+            "type": "string",
+            "example": "/uploads/foto.jpg"
+          },
+          "rol": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2
+          }
+        }
+      },
+      "LoginInput": {
+        "type": "object",
+        "required": ["email", "contrasenia"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "juan.perez@email.com"
+          },
+          "contrasenia": {
+            "type": "string",
+            "example": "securePass123"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "example": true
+          },
+          "token": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "description": "Token JWT para autenticación"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id_usuario": {
+                "type": "integer",
+                "example": 1
+              },
+              "usuario": {
+                "type": "string",
+                "example": "Juan Pérez"
+              },
+              "rol": {
+                "type": "integer",
+                "example": 2
+              }
+            }
+          }
+        }
+      },
+      "Paciente": {
+        "type": "object",
+        "properties": {
+          "id_paciente": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_usuario": {
+            "type": "integer",
+            "example": 5
+          },
+          "id_obra_social": {
+            "type": "integer",
+            "example": 2
+          }
+        }
+      },
+      "PacienteInput": {
+        "type": "object",
+        "required": ["id_usuario", "id_obra_social"],
+        "properties": {
+          "id_usuario": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 5,
+            "description": "ID del usuario asociado al paciente"
+          },
+          "id_obra_social": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2,
+            "description": "ID de la obra social del paciente"
+          }
+        }
+      },
+      "MedicoObraSocial": {
+        "type": "object",
+        "properties": {
+          "id_medico_obra_social": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_medico": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_obra_social": {
+            "type": "integer",
+            "example": 2
+          },
+          "activo": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 1
+          }
+        }
+      },
+      "MedicoObraSocialInput": {
+        "type": "object",
+        "required": ["id_medico", "id_obra_social"],
+        "properties": {
+          "id_medico": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1,
+            "description": "ID del médico"
+          },
+          "id_obra_social": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2,
+            "description": "ID de la obra social"
+          }
+        }
+      },
+      "TurnoReserva": {
+        "type": "object",
+        "properties": {
+          "id_turno_reserva": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_medico": {
+            "type": "integer",
+            "example": 1
+          },
+          "id_paciente": {
+            "type": "integer",
+            "example": 3
+          },
+          "id_obra_social": {
+            "type": "integer",
+            "example": 2
+          },
+          "fecha_hora": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-15T10:00:00.000Z"
+          },
+          "valor_total": {
+            "type": "number",
+            "format": "float",
+            "example": 3000.00
+          },
+          "atentido": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 0,
+            "description": "0 = pendiente, 1 = atendido"
+          },
+          "activo": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 1
+          }
+        }
+      },
+      "TurnoReservaInput": {
+        "type": "object",
+        "required": ["id_medico", "id_paciente", "id_obra_social", "fecha_hora", "valor_total", "atentido"],
+        "properties": {
+          "id_medico": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 1
+          },
+          "id_paciente": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 3
+          },
+          "id_obra_social": {
+            "type": "integer",
+            "minimum": 1,
+            "example": 2
+          },
+          "fecha_hora": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-06-15T10:00:00.000Z",
+            "description": "Fecha y hora del turno en formato ISO 8601"
+          },
+          "valor_total": {
+            "type": "number",
+            "format": "float",
+            "minimum": 0,
+            "example": 3000.00,
+            "description": "Valor total de la consulta (puede incluir descuento de obra social)"
+          },
+          "atentido": {
+            "type": "integer",
+            "enum": [0, 1],
+            "example": 0,
+            "description": "0 = pendiente (default), 1 = atendido"
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "Datos de entrada inválidos",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "Recurso no encontrado",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "ok": false,
+              "msg": "Recurso no encontrado"
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "Error interno del servidor",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "example": {
+              "ok": false,
+              "msg": "Error interno del servidor"
+            }
+          }
+        }
+      },
+      "ValidationError": {
+        "description": "Error de validación en los campos enviados",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ValidationErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "idParam": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "description": "ID entero positivo del recurso",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "idMedicoParam": {
+        "name": "id_medico",
+        "in": "path",
+        "required": true,
+        "description": "ID entero positivo del médico",
+        "schema": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  },
+  "paths": {
+    "/usuarios/login": {
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Autenticación de usuario",
+        "description": "Inicia sesión con email y contraseña. Devuelve un token JWT y los datos básicos del usuario autenticado.",
+        "operationId": "loginUsuario",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginInput"
+              },
+              "example": {
+                "email": "admin@clinica.com",
+                "contrasenia": "admin123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso. Devuelve token JWT y datos del usuario.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "description": "Credenciales incorrectas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Credenciales incorrectas"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/usuarios": {
+      "get": {
+        "tags": ["Usuarios"],
+        "summary": "Obtener todos los usuarios activos",
+        "description": "Retorna la lista de todos los usuarios con estado activo = 1. Devuelve nombre completo (nombres + apellido), rol, email, foto y estado.",
+        "operationId": "getAllUsuarios",
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios obtenida con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessListResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Usuario"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Usuarios"],
+        "summary": "Crear un nuevo usuario",
+        "description": "Registra un nuevo usuario en el sistema. La contraseña se almacena hasheada con SHA2-256. El documento y el email deben ser únicos.",
+        "operationId": "createUsuario",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsuarioInput"
+              },
+              "example": {
+                "documento": "30123456",
+                "apellido": "Pérez",
+                "nombres": "Juan Carlos",
+                "email": "juan.perez@email.com",
+                "contrasenia": "securePass123",
+                "foto_path": "",
+                "rol": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "msg": {
+                      "type": "string",
+                      "example": "Usuario creado con éxito"
+                    },
+                    "data": {
+                      "allOf": [
+                        {
+                          "$ref": "#/components/schemas/UsuarioInput"
+                        },
+                        {
+                          "properties": {
+                            "id_usuario": {
+                              "type": "integer",
+                              "example": 1
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Documento o email ya registrado / Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Documento o email ya registrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/usuarios/{id}": {
+      "get": {
+        "tags": ["Usuarios"],
+        "summary": "Obtener un usuario por ID",
+        "description": "Retorna los datos del usuario activo correspondiente al ID proporcionado.",
+        "operationId": "getUsuarioById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessObjectResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/Usuario"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Usuario no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Usuarios"],
+        "summary": "Actualizar un usuario",
+        "description": "Actualiza los datos de un usuario activo. No permite actualizar la contraseña (usar endpoint dedicado si existiera).",
+        "operationId": "updateUsuario",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UsuarioUpdateInput"
+              },
+              "example": {
+                "documento": "30123456",
+                "apellido": "Pérez",
+                "nombres": "Juan Carlos",
+                "email": "juan.nuevo@email.com",
+                "foto_path": "",
+                "rol": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Usuario actualizado con éxito"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Usuario no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Usuarios"],
+        "summary": "Eliminar un usuario (soft delete)",
+        "description": "Marca al usuario como inactivo (activo = 0). El registro no se elimina físicamente de la base de datos.",
+        "operationId": "deleteUsuario",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usuario eliminado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Usuario eliminado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Usuario no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/especialidades": {
+      "get": {
+        "tags": ["Especialidades"],
+        "summary": "Obtener todas las especialidades activas",
+        "description": "Retorna la lista completa de especialidades médicas con estado activo = 1.",
+        "operationId": "getAllEspecialidades",
+        "responses": {
+          "200": {
+            "description": "Lista de especialidades obtenida con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessListResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Especialidad"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Especialidades"],
+        "summary": "Crear una nueva especialidad",
+        "description": "Registra una nueva especialidad médica. El nombre se almacena en mayúsculas y debe ser único.",
+        "operationId": "createEspecialidad",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EspecialidadInput"
+              },
+              "example": {
+                "nombre": "Cardiología"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Especialidad creada con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "msg": {
+                      "type": "string",
+                      "example": "Especialidad creada con éxito"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Especialidad"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nombre duplicado o error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Ya existe una especialidad con ese nombre"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/especialidades/{id}": {
+      "get": {
+        "tags": ["Especialidades"],
+        "summary": "Obtener una especialidad por ID",
+        "description": "Retorna los datos de la especialidad activa correspondiente al ID.",
+        "operationId": "getEspecialidadById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Especialidad encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessObjectResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/Especialidad"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Especialidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Especialidad no encontrada"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Especialidades"],
+        "summary": "Actualizar una especialidad",
+        "description": "Actualiza el nombre de una especialidad activa. El nombre se almacena en mayúsculas.",
+        "operationId": "updateEspecialidad",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EspecialidadInput"
+              },
+              "example": {
+                "nombre": "Neurología"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Especialidad actualizada con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Especialidad actualizada con éxito"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nombre duplicado o error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Ese nombre ya está en uso"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Especialidad no encontrada o inactiva",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Especialidad no encontrada o inactiva"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Especialidades"],
+        "summary": "Eliminar una especialidad (soft delete)",
+        "description": "Marca la especialidad como inactiva (activo = 0). El registro no se elimina físicamente.",
+        "operationId": "deleteEspecialidad",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Especialidad eliminada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Especialidad eliminada correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Especialidad no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Especialidad no encontrada"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/medicos": {
+      "get": {
+        "tags": ["Médicos"],
+        "summary": "Obtener todos los médicos",
+        "description": "Retorna la lista completa de médicos registrados.",
+        "operationId": "getAllMedicos",
+        "responses": {
+          "200": {
+            "description": "Lista de médicos obtenida con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessListResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Medico"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Médicos"],
+        "summary": "Crear un nuevo médico",
+        "description": "Registra un nuevo médico. La matrícula y el id_usuario deben ser únicos. El usuario y la especialidad referenciados deben existir.",
+        "operationId": "createMedico",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicoInput"
+              },
+              "example": {
+                "id_usuario": 3,
+                "id_especialidad": 2,
+                "matricula": 12345,
+                "descripcion": "Especialista con 10 años de experiencia",
+                "valor_consulta": 5000.00
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Médico creado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "msg": {
+                      "type": "string",
+                      "example": "Médico creado con éxito"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Medico"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Matrícula duplicada o usuario/especialidad inexistente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "duplicado": {
+                    "value": {
+                      "ok": false,
+                      "msg": "Ya existe un registro con esos datos únicos (matrícula o usuario)"
+                    }
+                  },
+                  "referencia": {
+                    "value": {
+                      "ok": false,
+                      "msg": "El usuario o la especialidad indicados no existen"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/medicos/{id_medico}": {
+      "get": {
+        "tags": ["Médicos"],
+        "summary": "Obtener un médico por ID",
+        "description": "Retorna los datos del médico correspondiente al ID proporcionado.",
+        "operationId": "getMedicoById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idMedicoParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Médico encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessObjectResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/Medico"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Médicos"],
+        "summary": "Actualizar un médico",
+        "description": "Actualiza todos los campos de un médico existente. Todos los campos son requeridos.",
+        "operationId": "updateMedico",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idMedicoParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicoInput"
+              },
+              "example": {
+                "id_usuario": 3,
+                "id_especialidad": 2,
+                "matricula": 12345,
+                "descripcion": "Descripción actualizada",
+                "valor_consulta": 6000.00
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Médico actualizado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Médico actualizado con éxito"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Dato duplicado o referencia inválida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Médico no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Médico no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Médicos"],
+        "summary": "Eliminar un médico (hard delete)",
+        "description": "Elimina físicamente el registro del médico de la base de datos.",
+        "operationId": "deleteMedico",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idMedicoParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Médico eliminado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Médico eliminado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Médico no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Médico no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/obras-sociales": {
+      "get": {
+        "tags": ["Obras Sociales"],
+        "summary": "Obtener todas las obras sociales activas",
+        "description": "Retorna la lista de obras sociales con estado activo = 1.",
+        "operationId": "getAllObrasSociales",
+        "responses": {
+          "200": {
+            "description": "Lista de obras sociales obtenida con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessListResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/ObraSocial"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Obras Sociales"],
+        "summary": "Crear una nueva obra social",
+        "description": "Registra una nueva obra social. El nombre y la descripción se almacenan en mayúsculas y minúsculas respectivamente, y deben ser únicos.",
+        "operationId": "createObraSocial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObraSocialInput"
+              },
+              "example": {
+                "nombre": "OSDE",
+                "descripcion": "Plan210",
+                "porcentaje_descuento": 40.0,
+                "es_particular": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Obra social creada con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "msg": {
+                      "type": "string",
+                      "example": "Obra social creada con éxito"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ObraSocial"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nombre o descripción duplicados / Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Ya existe una obra social con ese nombre o descripción"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/obras-sociales/{id}": {
+      "get": {
+        "tags": ["Obras Sociales"],
+        "summary": "Obtener una obra social por ID",
+        "description": "Retorna los datos de la obra social activa correspondiente al ID.",
+        "operationId": "getObraSocialById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Obra social encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessObjectResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ObraSocial"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Obra social no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Obra social no encontrada"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Obras Sociales"],
+        "summary": "Actualizar una obra social",
+        "description": "Actualiza todos los campos de una obra social activa.",
+        "operationId": "updateObraSocial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ObraSocialInput"
+              },
+              "example": {
+                "nombre": "OSDE",
+                "descripcion": "Plan310",
+                "porcentaje_descuento": 50.0,
+                "es_particular": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Obra social actualizada con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Obra social actualizada con éxito"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Nombre o descripción duplicados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Ese nombre o descripción ya está en uso"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Obra social no encontrada o inactiva",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Obra social no encontrada o inactiva"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Obras Sociales"],
+        "summary": "Eliminar una obra social (soft delete)",
+        "description": "Marca la obra social como inactiva (activo = 0). El registro no se elimina físicamente.",
+        "operationId": "deleteObraSocial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Obra social eliminada correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Obra social eliminada correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Obra social no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Obra social no encontrada"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/pacientes": {
+      "get": {
+        "tags": ["Pacientes"],
+        "summary": "Obtener todos los pacientes",
+        "description": "Retorna la lista completa de pacientes consultando la vista `v_pacientes`.",
+        "operationId": "getAllPacientes",
+        "responses": {
+          "200": {
+            "description": "Lista de pacientes obtenida con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessListResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Paciente"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Pacientes"],
+        "summary": "Crear un nuevo paciente",
+        "description": "Registra un nuevo paciente vinculando un usuario con una obra social.",
+        "operationId": "createPaciente",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PacienteInput"
+              },
+              "example": {
+                "id_usuario": 5,
+                "id_obra_social": 2
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Paciente creado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "msg": {
+                      "type": "string",
+                      "example": "Paciente creado con éxito"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Paciente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/pacientes/{id}": {
+      "get": {
+        "tags": ["Pacientes"],
+        "summary": "Obtener un paciente por ID",
+        "description": "Retorna los datos del paciente correspondiente al ID desde la vista `v_pacientes`.",
+        "operationId": "getPacienteById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paciente encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessObjectResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/Paciente"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Paciente no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Pacientes"],
+        "summary": "Actualizar un paciente",
+        "description": "Actualiza el usuario y/o la obra social asociada a un paciente.",
+        "operationId": "updatePaciente",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PacienteInput"
+              },
+              "example": {
+                "id_usuario": 5,
+                "id_obra_social": 3
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paciente actualizado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Paciente actualizado con éxito"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Paciente no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Pacientes"],
+        "summary": "Eliminar un paciente (hard delete)",
+        "description": "Elimina físicamente el registro del paciente de la base de datos.",
+        "operationId": "deletePaciente",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paciente eliminado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Paciente eliminado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Paciente no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Paciente no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/medicos-obras-sociales": {
+      "get": {
+        "tags": ["Médicos-Obras Sociales"],
+        "summary": "Obtener todos los vínculos activos",
+        "description": "Retorna la lista de todas las relaciones activas entre médicos y obras sociales.",
+        "operationId": "getAllMedicosObrasSociales",
+        "responses": {
+          "200": {
+            "description": "Lista de vínculos obtenida con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessListResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/MedicoObraSocial"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Médicos-Obras Sociales"],
+        "summary": "Crear un vínculo médico-obra social",
+        "description": "Registra que un médico acepta una determinada obra social.",
+        "operationId": "createMedicoObraSocial",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicoObraSocialInput"
+              },
+              "example": {
+                "id_medico": 1,
+                "obras_sociales": [
+                  {
+                    "id_obra_social": 2,
+                    "nombre": "OSDE"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Vínculo creado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "msg": {
+                      "type": "string",
+                      "example": "Vínculo creado con éxito"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MedicoObraSocial"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/medicos-obras-sociales/{id}": {
+      "get": {
+        "tags": ["Médicos-Obras Sociales"],
+        "summary": "Obtener un vínculo por ID",
+        "description": "Retorna el vínculo activo médico-obra social correspondiente al ID.",
+        "operationId": "getMedicoObraSocialById",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vínculo encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessObjectResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MedicoObraSocial"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Vínculo no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Vínculo no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Médicos-Obras Sociales"],
+        "summary": "Actualizar un vínculo médico-obra social",
+        "description": "Actualiza el médico y/o la obra social de un vínculo activo existente.",
+        "operationId": "updateMedicoObraSocial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MedicoObraSocialInput"
+              },
+              "example": {
+                "id_medico": 1,
+                "id_obra_social": 3
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Vínculo actualizado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Vínculo actualizado con éxito"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Vínculo no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Vínculo no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Médicos-Obras Sociales"],
+        "summary": "Eliminar un vínculo (soft delete)",
+        "description": "Marca el vínculo médico-obra social como inactivo (activo = 0).",
+        "operationId": "deleteMedicoObraSocial",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Vínculo eliminado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Vínculo eliminado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Vínculo no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Vínculo no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/turnos": {
+      "get": {
+        "tags": ["Turnos"],
+        "summary": "Obtener todos los turnos activos",
+        "description": "Retorna la lista de todos los turnos con estado activo = 1.",
+        "operationId": "getAllTurnos",
+        "responses": {
+          "200": {
+            "description": "Lista de turnos obtenida con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SuccessListResponse"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/TurnoReserva"
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "post": {
+        "tags": ["Turnos"],
+        "summary": "Reservar un turno",
+        "description": "Crea una nueva reserva de turno médico vinculando médico, paciente y obra social. El total se calcula automáticamente.",
+        "operationId": "createTurno",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnoReservaInput"
+              },
+              "example": {
+                "id_medico": 1,
+                "id_paciente": 3,
+                "id_obra_social": 2,
+                "fecha_hora": "2026-06-15T10:00:00.000Z",
+                "valor_total": 0,
+                "atentido": 0
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Turno reservado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "msg": {
+                      "type": "string",
+                      "example": "Turno reservado con éxito"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/TurnoReserva"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/turnos/estadisticas": {
+      "get": {
+        "tags": ["Turnos"],
+        "summary": "Obtener estadísticas de atenciones del mes anterior",
+        "description": "Devuelve la cantidad de turnos y la facturación total agrupada por especialidad mediante un Stored Procedure.",
+        "operationId": "getEstadisticas",
+        "responses": {
+          "200": {
+            "description": "Estadísticas calculadas correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/turnos/reporte-pdf": {
+      "get": {
+        "tags": ["Turnos"],
+        "summary": "Descargar informe general de turnos en PDF",
+        "description": "Genera y descarga un archivo PDF con la auditoría de los turnos activos, fechas y obras sociales mediante pdfkit.",
+        "operationId": "descargarReportePDF",
+        "responses": {
+          "200": {
+            "description": "Archivo PDF generado y descargado con éxito"
+          },
+          "500": {
+            "description": "Error al generar el informe en PDF"
+          }
+        }
+      }
+    },
+    "/turnos/paciente/{id}": {
+      "get": {
+        "tags": ["Turnos"],
+        "summary": "Obtener turnos de un paciente",
+        "description": "Retorna los turnos activos de un paciente filtrando por `id_usuario`. Devuelve únicamente `fecha_hora` y `valor_total` de cada turno.",
+        "operationId": "getPatientAppointments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del usuario (id_usuario) asociado al paciente",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Turnos del paciente obtenidos con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "fecha_hora": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-06-15T10:00:00.000Z"
+                          },
+                          "valor_total": {
+                            "type": "number",
+                            "format": "float",
+                            "example": 3000.00
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "No se encontraron turnos para el paciente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Turnos del paciente no encontrados"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/turnos/medico/{id}": {
+      "get": {
+        "tags": ["Turnos"],
+        "summary": "Obtener turnos de un médico",
+        "description": "Retorna los turnos activos de un médico filtrando por `id_usuario`. Devuelve únicamente `fecha_hora` y `valor_total` de cada turno.",
+        "operationId": "getDoctorAppointments",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del usuario (id_usuario) asociado al médico",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Turnos del médico obtenidos con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "fecha_hora": {
+                            "type": "string",
+                            "format": "date-time",
+                            "example": "2026-06-15T10:00:00.000Z"
+                          },
+                          "valor_total": {
+                            "type": "number",
+                            "format": "float",
+                            "example": 5000.00
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "No se encontraron turnos para el médico",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Turnos del médico no encontrados"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/turnos/{id}": {
+      "put": {
+        "tags": ["Turnos"],
+        "summary": "Actualizar un turno",
+        "description": "Actualiza todos los campos de un turno activo existente. Útil para marcar un turno como atendido (atentido = 1).",
+        "operationId": "updateTurno",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TurnoReservaInput"
+              },
+              "example": {
+                "id_medico": 1,
+                "id_paciente": 3,
+                "id_obra_social": 2,
+                "fecha_hora": "2026-06-15T10:00:00.000Z",
+                "valor_total": 3000.00,
+                "atentido": 1
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Turno actualizado con éxito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Turno actualizado con éxito"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Turno no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Turno no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Turnos"],
+        "summary": "Cancelar un turno (soft delete)",
+        "description": "Marca el turno como inactivo (activo = 0). El registro no se elimina físicamente.",
+        "operationId": "deleteTurno",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Turno cancelado correctamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Turno cancelado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "404": {
+            "description": "Turno no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Turno no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  }
+}
