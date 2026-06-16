@@ -32,11 +32,4 @@ export default class Pacientes {
     return result;
   };
 
-  delete = async (id) => {
-    const [result] = await pool.execute(
-      "DELETE FROM pacientes WHERE id_paciente = ?",
-      [id]
-    );
-    return result;
-  };
 }

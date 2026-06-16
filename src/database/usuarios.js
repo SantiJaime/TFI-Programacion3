@@ -36,9 +36,30 @@ export default class Usuarios {
 
   update = async (id, data) => {
     const { documento, apellido, nombres, email, foto_path, rol } = data;
+    if (foto_path !== undefined) {
+      const [result] = await pool.execute(
+        "UPDATE usuarios SET documento = ?, apellido = ?, nombres = ?, email = ?, foto_path = ?, rol = ? WHERE id_usuario = ? AND activo = 1",
+        [documento, apellido, nombres, email, foto_path, rol, id],
+      );
+      return result;
+    }
     const [result] = await pool.execute(
-      "UPDATE usuarios SET documento = ?, apellido = ?, nombres = ?, email = ?, foto_path = ?, rol = ? WHERE id_usuario = ? AND activo = 1",
-      [documento, apellido, nombres, email, foto_path || "", rol, id],
+      "UPDATE usuarios SET documento = ?, apellido = ?, nombres = ?, email = ?, rol = ? WHERE id_usuario = ? AND activo = 1",
+      [documento, apellido, nombres, email, rol, id],
+    );
+    return result;
+  };
+
+  resetPassword = async (id, contraseniaActual, contraseniaNueva) => {
+    const [check] = await pool.execute(
+      "SELECT id_usuario FROM usuarios WHERE id_usuario = ? AND contrasenia = SHA2(?, 256) AND activo = 1",
+      [id, contraseniaActual]
+    );
+    if (check.length === 0) return null;
+
+    const [result] = await pool.execute(
+      "UPDATE usuarios SET contrasenia = SHA2(?, 256) WHERE id_usuario = ? AND activo = 1",
+      [contraseniaNueva, id]
     );
     return result;
   };

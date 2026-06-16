@@ -2,14 +2,16 @@ import { Router } from "express";
 import { check, param } from "express-validator";
 import MedicosObrasSocialesController from "../../controllers/medicos_obras_sociales.controller.js";
 import { validarCampos } from "../../middleware/validarCampos.js";
+import auth, { ROLES } from "../../middleware/auth.js";
 
 const router = Router();
 const mosController = new MedicosObrasSocialesController();
 
-router.get("/", mosController.getAll);
+router.get("/", auth(ROLES.ADMIN), mosController.getAll);
 
 router.get(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .isInt({ min: 1 })
@@ -21,6 +23,7 @@ router.get(
 
 router.post(
   "/",
+  auth(ROLES.ADMIN),
   [
     check("id_medico")
       .isInt({ min: 1 })
@@ -43,6 +46,7 @@ router.post(
 
 router.put(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .isInt({ min: 1 })
@@ -60,6 +64,7 @@ router.put(
 
 router.delete(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .isInt({ min: 1 })

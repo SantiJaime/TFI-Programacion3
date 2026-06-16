@@ -1,5 +1,15 @@
 import TurnosReservasService from "../services/turnos_reservas.service.js";
-import PDFDocument from "pdfkit";
+import { ROLES } from "../middleware/auth.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import Handlebars from "handlebars";
+import puppeteer from "puppeteer";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const templatePath = path.join(__dirname, "../templates/reporte-turnos.hbs");
+const templateSource = fs.readFileSync(templatePath, "utf-8");
+const template = Handlebars.compile(templateSource);
 
 export default class TurnosReservasController {
   constructor() {
@@ -50,19 +60,30 @@ export default class TurnosReservasController {
 
   create = async (req, res) => {
     try {
-      const result = await this.turnosService.create(req.body);
-      
-     
-      const [nuevoTurno] = await this.turnosService.getAll(); 
-      const valorCalculado = nuevoTurno ? nuevoTurno.valor_total : undefined;
+      let id_paciente = req.body.id_paciente;
+
+      if (req.user.rol === ROLES.PACIENTE) {
+        id_paciente = await this.turnosService.getPacienteIdByUsuario(req.user.id_usuario);
+        if (!id_paciente) {
+          return res.status(404).send({ ok: false, msg: "No se encontró el paciente asociado al usuario" });
+        }
+      } else if (!id_paciente) {
+        return res.status(400).send({ ok: false, msg: "El id de paciente es obligatorio" });
+      }
+
+      const { result, valorCalculado, id_obra_social } = await this.turnosService.create({ ...req.body, id_paciente });
+      const { id_medico, fecha_hora } = req.body;
 
       res.status(201).send({
         ok: true,
         msg: "Turno reservado con éxito",
-        data: { 
-          id_turno_reserva: result.insertId, 
-          ...req.body,
-          valor_total: valorCalculado 
+        data: {
+          id_turno_reserva: result.insertId,
+          id_medico,
+          id_paciente,
+          id_obra_social,
+          fecha_hora,
+          valor_total: valorCalculado,
         },
       });
     } catch (error) {
@@ -136,39 +157,45 @@ export default class TurnosReservasController {
 
   
   descargarReportePDF = async (req, res) => {
+    let browser;
     try {
-      const turnos = await this.turnosService.getReporteDatos();
+      const rows = await this.turnosService.getReporteDatos();
+      console.log(rows)
+      const atendidos = rows.filter(t => t.atentido === 1).length;
+      const facturacionTotal = rows.reduce((sum, t) => sum + parseFloat(t.valor_total || 0), 0).toFixed(2);
 
-      const doc = new PDFDocument({ margin: 50 });
+      const html = template({
+        fechaEmision: new Date().toLocaleString("es-AR"),
+        anio: new Date().getFullYear(),
+        totalTurnos: rows.length,
+        atendidos,
+        pendientes: rows.length - atendidos,
+        facturacionTotal,
+        turnos: rows.map((t) => ({
+          numero: t.id_turno_reserva,
+          fecha: new Date(t.fecha_hora).toLocaleString("es-AR"),
+          paciente: t.paciente_nombre,
+          medico: t.medico_nombre,
+          especialidad: t.especialidad_nombre,
+          obra_social: t.obra_social_nombre,
+          valor_total: parseFloat(t.valor_total).toFixed(2),
+          atendido: t.atentido === 1,
+        })),
+      });
+
+      browser = await puppeteer.launch({ args: ["--no-sandbox", "--disable-setuid-sandbox"] });
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: "networkidle0" });
+      const pdf = await page.pdf({ format: "A4", printBackground: true, margin: { top: "20px", bottom: "20px", left: "20px", right: "20px" } });
 
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", "attachment; filename=reporte-turnos.pdf");
-
-      doc.pipe(res);
-
-      doc.fontSize(20).text("API CLINICA MEDICA", { align: "center" });
-      doc.fontSize(14).text("Informe General de Turnos y Auditoria", { align: "center" });
-      doc.moveDown(2);
-
-      doc.fontSize(11).text(`Cantidad Total de Turnos Activos: ${turnos.length}`);
-      doc.moveDown(1);
-
-      doc.moveTo(50, doc.y).lineTo(550, doc.y).stroke();
-      doc.moveDown(1);
-
-      turnos.forEach((turno, index) => {
-        const fecha = new Date(turno.fecha_hora).toLocaleString("es-AR");
-        doc.fontSize(10).text(
-          `${index + 1}. Fecha: ${fecha} | Obra Social: ${turno.obra_social_nombre} | Total Facturado: $${turno.valor_total}`
-        );
-        doc.moveDown(0.5);
-      });
-
-      doc.end();
-
+      res.send(pdf);
     } catch (error) {
       console.error("Error al generar PDF:", error);
       res.status(500).send({ ok: false, msg: "Error al generar el informe en PDF" });
+    } finally {
+      if (browser) await browser.close();
     }
   };
 }

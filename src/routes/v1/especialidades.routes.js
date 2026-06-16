@@ -1,15 +1,17 @@
 import { Router } from "express";
-import { check, param } from "express-validator"; 
+import { check, param } from "express-validator";
 import { validarCampos } from "../../middleware/validarCampos.js";
 import EspecialidadesController from "../../controllers/especialidades.controller.js";
+import auth, { ROLES } from "../../middleware/auth.js";
 
 const router = Router();
 const especialidadesController = new EspecialidadesController()
 
-router.get("/", especialidadesController.getAll);
+router.get("/", auth(ROLES.PACIENTE, ROLES.ADMIN), especialidadesController.getAll);
 
 router.get(
   "/:id",
+  auth(ROLES.PACIENTE, ROLES.ADMIN),
   [
     param("id")
       .notEmpty()
@@ -23,6 +25,7 @@ router.get(
 
 router.post(
   "/",
+  auth(ROLES.ADMIN),
   [
     check("nombre").trim().notEmpty().withMessage("El nombre es obligatorio"),
     validarCampos,
@@ -32,6 +35,7 @@ router.post(
 
 router.put(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .notEmpty()
@@ -51,6 +55,7 @@ router.put(
 
 router.delete(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .notEmpty()

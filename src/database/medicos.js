@@ -14,6 +14,14 @@ export default class Medicos {
     return medico;
   };
 
+  getByEspecialidad = async (id_especialidad) => {
+    const [medicos] = await pool.execute(
+      "SELECT m.*, e.nombre AS especialidad, CONCAT(u.nombres, ' ', u.apellido) AS nombre FROM medicos m INNER JOIN especialidades e ON m.id_especialidad = e.id_especialidad INNER JOIN usuarios u ON m.id_usuario = u.id_usuario WHERE m.id_especialidad = ? ",
+      [id_especialidad],
+    );
+    return medicos;
+  };
+
   create = async (data) => {
     const {
       id_usuario,
@@ -44,14 +52,4 @@ export default class Medicos {
     return result;
   };
 
-  delete = async (id) => {
-    const [result] = await pool.execute(
-      "DELETE FROM medicos WHERE id_medico = ?",
-      [id],
-    );
-    return {
-      deleted: result.affectedRows > 0,
-      affectedRows: result.affectedRows,
-    };
-  };
 }

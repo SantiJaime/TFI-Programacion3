@@ -17,6 +17,10 @@ export default class TurnosReservasService {
     return this.turnosReservas.getPatientAppointments(id_usuario);
   };
 
+  getPacienteIdByUsuario = (id_usuario) => {
+    return this.turnosReservas.getPacienteIdByUsuario(id_usuario);
+  };
+
   create = (data) => {
     return this.turnosReservas.create(data);
   };

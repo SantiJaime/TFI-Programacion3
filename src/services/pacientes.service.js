@@ -21,7 +21,4 @@ export default class PacientesService {
     return this.pacientes.update(id, data);
   };
 
-  delete = (id) => {
-    return this.pacientes.delete(id);
-  };
 }

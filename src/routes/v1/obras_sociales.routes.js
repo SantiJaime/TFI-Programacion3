@@ -2,14 +2,16 @@ import { Router } from "express";
 import { check, param } from "express-validator";
 import { validarCampos } from "../../middleware/validarCampos.js";
 import ObrasSocialesController from "../../controllers/obras_sociales.controller.js";
+import auth, { ROLES } from "../../middleware/auth.js";
 
 const router = Router();
 const obrasSocialesController = new ObrasSocialesController();
 
-router.get("/", obrasSocialesController.getAll);
+router.get("/", auth(ROLES.ADMIN), obrasSocialesController.getAll);
 
 router.get(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .notEmpty()
@@ -23,6 +25,7 @@ router.get(
 
 router.post(
   "/",
+  auth(ROLES.ADMIN),
   [
     check("nombre").trim().notEmpty().withMessage("El nombre es obligatorio"),
     check("descripcion")
@@ -47,6 +50,7 @@ router.post(
 
 router.put(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .notEmpty()
@@ -76,6 +80,7 @@ router.put(
 
 router.delete(
   "/:id",
+  auth(ROLES.ADMIN),
   [
     param("id")
       .notEmpty()
