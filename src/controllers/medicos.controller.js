@@ -18,11 +18,28 @@ export default class MedicosController {
     }
   };
 
+  getByEspecialidad = async (req, res) => {
+    try {
+      const { id_especialidad } = req.params;
+      const rows = await this.medicosService.getByEspecialidad(id_especialidad);
+      if (rows.length === 0) {
+        return res.status(404).send({ ok: false, msg: "No se encontraron médicos para esa especialidad" });
+      }
+      return res.status(200).send({ ok: true, data: rows });
+    } catch (error) {
+      console.error("Error al obtener médicos por especialidad:", error);
+      return res.status(500).send({ ok: false, msg: "Error al obtener los médicos por especialidad" });
+    }
+  };
+
   getById = async (req, res) => {
     try {
       const { id_medico } = req.params;
       const row = await this.medicosService.getById(id_medico);
 
+      if (!row || row.length === 0) {
+        return res.status(404).send({ ok: false, msg: "Médico no encontrado" });
+      }
       return res.status(200).send({ ok: true, data: row[0] });
     } catch (error) {
       console.error("Error al obtener el médico:", error);
@@ -125,23 +142,4 @@ export default class MedicosController {
     }
   };
 
-  delete = async (req, res) => {
-    try {
-      const { id_medico } = req.params;
-      const result = await this.medicosService.delete(id_medico);
-
-      if (!result.deleted) {
-        return res.status(404).send({ ok: false, msg: "Médico no encontrado" });
-      }
-
-      return res
-        .status(200)
-        .send({ ok: true, msg: "Médico eliminado correctamente" });
-    } catch (error) {
-      console.error("Error al eliminar médico:", error);
-      return res
-        .status(500)
-        .send({ ok: false, msg: "Error al eliminar el médico" });
-    }
-  };
 }

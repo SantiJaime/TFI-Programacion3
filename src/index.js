@@ -1,6 +1,7 @@
 import express from "express";
 import fs from "fs";
 import path from "path";
+import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import v1EspecialidadesRouter from "./routes/v1/especialidades.routes.js";
 import v1MedicosRouter from "./routes/v1/medicos.routes.js";
@@ -22,8 +23,14 @@ const swaggerDocument = JSON.parse(
   fs.readFileSync(path.resolve("./src/swagger.json"), "utf8"),
 );
 
+app.use(cors({
+  origin: process.env.CORS_ORIGIN || "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
 app.use(express.json());
 app.use(morgan("dev"));
+app.use("/uploads", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.status(200).send({ "ok": true, msg: "API en funcionamiento" });

@@ -30,4 +30,8 @@ export default class UsuariosService {
   delete = (id) => {
     return this.usuarios.delete(id);
   };
+
+  resetPassword = (id, contraseniaActual, contraseniaNueva) => {
+    return this.usuarios.resetPassword(id, contraseniaActual, contraseniaNueva);
+  };
 }

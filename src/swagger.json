@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "API Clínica Médica — Sistema de Gestión de Turnos",
+    "title": "TFI Programación III - Grupo AF - API clínica médica ",
     "version": "1.0.0",
     "description": "Documentación completa del backend de la API REST para gestión de turnos médicos. Incluye módulos de Usuarios, Especialidades, Médicos, Obras Sociales, Pacientes, relación Médicos-Obras Sociales y Reservas de Turnos.\n\n**Autenticación:** El endpoint `/usuarios/login` devuelve un token JWT que debe enviarse en el header `Authorization: Bearer <token>` en los endpoints que lo requieran."
   },
@@ -9,6 +9,11 @@
     {
       "url": "http://localhost:3000/api/v1",
       "description": "Servidor de desarrollo local"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
     }
   ],
   "tags": [
@@ -140,7 +145,10 @@
           },
           "activo": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 1,
             "description": "1 = activo, 0 = eliminado (soft delete)"
           }
@@ -148,7 +156,9 @@
       },
       "EspecialidadInput": {
         "type": "object",
-        "required": ["nombre"],
+        "required": [
+          "nombre"
+        ],
         "properties": {
           "nombre": {
             "type": "string",
@@ -186,13 +196,18 @@
           "valor_consulta": {
             "type": "number",
             "format": "float",
-            "example": 5000.00
+            "example": 5000
           }
         }
       },
       "MedicoInput": {
         "type": "object",
-        "required": ["id_usuario", "id_especialidad", "matricula", "valor_consulta"],
+        "required": [
+          "id_usuario",
+          "id_especialidad",
+          "matricula",
+          "valor_consulta"
+        ],
         "properties": {
           "id_usuario": {
             "type": "integer",
@@ -222,7 +237,7 @@
             "type": "number",
             "format": "float",
             "minimum": 0,
-            "example": 5000.00,
+            "example": 5000,
             "description": "Valor de la consulta médica"
           }
         }
@@ -246,24 +261,34 @@
           "porcentaje_descuento": {
             "type": "number",
             "format": "float",
-            "example": 40.0
+            "example": 40
           },
           "es_particular": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 0,
             "description": "0 = obra social, 1 = particular"
           },
           "activo": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 1
           }
         }
       },
       "ObraSocialInput": {
         "type": "object",
-        "required": ["nombre", "descripcion", "porcentaje_descuento"],
+        "required": [
+          "nombre",
+          "descripcion",
+          "porcentaje_descuento"
+        ],
         "properties": {
           "nombre": {
             "type": "string",
@@ -282,12 +307,15 @@
             "format": "float",
             "minimum": 0,
             "maximum": 100,
-            "example": 40.0,
+            "example": 40,
             "description": "Porcentaje de descuento que aplica la obra social (0-100)"
           },
           "es_particular": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 0,
             "description": "0 = obra social (default), 1 = particular"
           }
@@ -322,14 +350,24 @@
           },
           "activo": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 1
           }
         }
       },
       "UsuarioInput": {
         "type": "object",
-        "required": ["documento", "apellido", "nombres", "email", "contrasenia", "rol"],
+        "required": [
+          "documento",
+          "apellido",
+          "nombres",
+          "email",
+          "contrasenia",
+          "rol"
+        ],
         "properties": {
           "documento": {
             "type": "string",
@@ -371,7 +409,13 @@
       },
       "UsuarioUpdateInput": {
         "type": "object",
-        "required": ["documento", "apellido", "nombres", "email", "rol"],
+        "required": [
+          "documento",
+          "apellido",
+          "nombres",
+          "email",
+          "rol"
+        ],
         "properties": {
           "documento": {
             "type": "string",
@@ -403,7 +447,10 @@
       },
       "LoginInput": {
         "type": "object",
-        "required": ["email", "contrasenia"],
+        "required": [
+          "email",
+          "contrasenia"
+        ],
         "properties": {
           "email": {
             "type": "string",
@@ -466,7 +513,10 @@
       },
       "PacienteInput": {
         "type": "object",
-        "required": ["id_usuario", "id_obra_social"],
+        "required": [
+          "id_usuario",
+          "id_obra_social"
+        ],
         "properties": {
           "id_usuario": {
             "type": "integer",
@@ -499,14 +549,20 @@
           },
           "activo": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 1
           }
         }
       },
       "MedicoObraSocialInput": {
         "type": "object",
-        "required": ["id_medico", "id_obra_social"],
+        "required": [
+          "id_medico",
+          "id_obra_social"
+        ],
         "properties": {
           "id_medico": {
             "type": "integer",
@@ -544,29 +600,39 @@
           "fecha_hora": {
             "type": "string",
             "format": "date-time",
-            "example": "2026-06-15T10:00:00.000Z"
+            "example": "2026-06-15 10:00:00"
           },
           "valor_total": {
             "type": "number",
             "format": "float",
-            "example": 3000.00
+            "example": 3000
           },
           "atentido": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 0,
             "description": "0 = pendiente, 1 = atendido"
           },
           "activo": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 1
           }
         }
       },
       "TurnoReservaInput": {
         "type": "object",
-        "required": ["id_medico", "id_paciente", "id_obra_social", "fecha_hora", "valor_total", "atentido"],
+        "required": [
+          "id_medico",
+          "id_paciente",
+          "fecha_hora"
+        ],
         "properties": {
           "id_medico": {
             "type": "integer",
@@ -578,27 +644,17 @@
             "minimum": 1,
             "example": 3
           },
-          "id_obra_social": {
-            "type": "integer",
-            "minimum": 1,
-            "example": 2
-          },
           "fecha_hora": {
             "type": "string",
             "format": "date-time",
-            "example": "2026-06-15T10:00:00.000Z",
-            "description": "Fecha y hora del turno en formato ISO 8601"
-          },
-          "valor_total": {
-            "type": "number",
-            "format": "float",
-            "minimum": 0,
-            "example": 3000.00,
-            "description": "Valor total de la consulta (puede incluir descuento de obra social)"
+            "example": "2026-06-15 10:00:00"
           },
           "atentido": {
             "type": "integer",
-            "enum": [0, 1],
+            "enum": [
+              0,
+              1
+            ],
             "example": 0,
             "description": "0 = pendiente (default), 1 = atendido"
           }
@@ -681,7 +737,9 @@
   "paths": {
     "/usuarios/login": {
       "post": {
-        "tags": ["Usuarios"],
+        "tags": [
+          "Usuarios"
+        ],
         "summary": "Autenticación de usuario",
         "description": "Inicia sesión con email y contraseña. Devuelve un token JWT y los datos básicos del usuario autenticado.",
         "operationId": "loginUsuario",
@@ -730,12 +788,15 @@
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
-        }
+        },
+        "security": []
       }
     },
     "/usuarios": {
       "get": {
-        "tags": ["Usuarios"],
+        "tags": [
+          "Usuarios"
+        ],
         "summary": "Obtener todos los usuarios activos",
         "description": "Retorna la lista de todos los usuarios con estado activo = 1. Devuelve nombre completo (nombres + apellido), rol, email, foto y estado.",
         "operationId": "getAllUsuarios",
@@ -770,7 +831,9 @@
         }
       },
       "post": {
-        "tags": ["Usuarios"],
+        "tags": [
+          "Usuarios"
+        ],
         "summary": "Crear un nuevo usuario",
         "description": "Registra un nuevo usuario en el sistema. La contraseña se almacena hasheada con SHA2-256. El documento y el email deben ser únicos.",
         "operationId": "createUsuario",
@@ -846,12 +909,15 @@
           "500": {
             "$ref": "#/components/responses/InternalServerError"
           }
-        }
+        },
+        "security": []
       }
     },
     "/usuarios/{id}": {
       "get": {
-        "tags": ["Usuarios"],
+        "tags": [
+          "Usuarios"
+        ],
         "summary": "Obtener un usuario por ID",
         "description": "Retorna los datos del usuario activo correspondiente al ID proporcionado.",
         "operationId": "getUsuarioById",
@@ -905,7 +971,9 @@
         }
       },
       "put": {
-        "tags": ["Usuarios"],
+        "tags": [
+          "Usuarios"
+        ],
         "summary": "Actualizar un usuario",
         "description": "Actualiza los datos de un usuario activo. No permite actualizar la contraseña (usar endpoint dedicado si existiera).",
         "operationId": "updateUsuario",
@@ -970,7 +1038,9 @@
         }
       },
       "delete": {
-        "tags": ["Usuarios"],
+        "tags": [
+          "Usuarios"
+        ],
         "summary": "Eliminar un usuario (soft delete)",
         "description": "Marca al usuario como inactivo (activo = 0). El registro no se elimina físicamente de la base de datos.",
         "operationId": "deleteUsuario",
@@ -1019,7 +1089,9 @@
     },
     "/especialidades": {
       "get": {
-        "tags": ["Especialidades"],
+        "tags": [
+          "Especialidades"
+        ],
         "summary": "Obtener todas las especialidades activas",
         "description": "Retorna la lista completa de especialidades médicas con estado activo = 1.",
         "operationId": "getAllEspecialidades",
@@ -1054,7 +1126,9 @@
         }
       },
       "post": {
-        "tags": ["Especialidades"],
+        "tags": [
+          "Especialidades"
+        ],
         "summary": "Crear una nueva especialidad",
         "description": "Registra una nueva especialidad médica. El nombre se almacena en mayúsculas y debe ser único.",
         "operationId": "createEspecialidad",
@@ -1117,7 +1191,9 @@
     },
     "/especialidades/{id}": {
       "get": {
-        "tags": ["Especialidades"],
+        "tags": [
+          "Especialidades"
+        ],
         "summary": "Obtener una especialidad por ID",
         "description": "Retorna los datos de la especialidad activa correspondiente al ID.",
         "operationId": "getEspecialidadById",
@@ -1171,7 +1247,9 @@
         }
       },
       "put": {
-        "tags": ["Especialidades"],
+        "tags": [
+          "Especialidades"
+        ],
         "summary": "Actualizar una especialidad",
         "description": "Actualiza el nombre de una especialidad activa. El nombre se almacena en mayúsculas.",
         "operationId": "updateEspecialidad",
@@ -1242,7 +1320,9 @@
         }
       },
       "delete": {
-        "tags": ["Especialidades"],
+        "tags": [
+          "Especialidades"
+        ],
         "summary": "Eliminar una especialidad (soft delete)",
         "description": "Marca la especialidad como inactiva (activo = 0). El registro no se elimina físicamente.",
         "operationId": "deleteEspecialidad",
@@ -1291,7 +1371,9 @@
     },
     "/medicos": {
       "get": {
-        "tags": ["Médicos"],
+        "tags": [
+          "Médicos"
+        ],
         "summary": "Obtener todos los médicos",
         "description": "Retorna la lista completa de médicos registrados.",
         "operationId": "getAllMedicos",
@@ -1326,7 +1408,9 @@
         }
       },
       "post": {
-        "tags": ["Médicos"],
+        "tags": [
+          "Médicos"
+        ],
         "summary": "Crear un nuevo médico",
         "description": "Registra un nuevo médico. La matrícula y el id_usuario deben ser únicos. El usuario y la especialidad referenciados deben existir.",
         "operationId": "createMedico",
@@ -1342,7 +1426,7 @@
                 "id_especialidad": 2,
                 "matricula": 12345,
                 "descripcion": "Especialista con 10 años de experiencia",
-                "valor_consulta": 5000.00
+                "valor_consulta": 5000
               }
             }
           }
@@ -1403,7 +1487,9 @@
     },
     "/medicos/{id_medico}": {
       "get": {
-        "tags": ["Médicos"],
+        "tags": [
+          "Médicos"
+        ],
         "summary": "Obtener un médico por ID",
         "description": "Retorna los datos del médico correspondiente al ID proporcionado.",
         "operationId": "getMedicoById",
@@ -1443,7 +1529,9 @@
         }
       },
       "put": {
-        "tags": ["Médicos"],
+        "tags": [
+          "Médicos"
+        ],
         "summary": "Actualizar un médico",
         "description": "Actualiza todos los campos de un médico existente. Todos los campos son requeridos.",
         "operationId": "updateMedico",
@@ -1464,7 +1552,7 @@
                 "id_especialidad": 2,
                 "matricula": 12345,
                 "descripcion": "Descripción actualizada",
-                "valor_consulta": 6000.00
+                "valor_consulta": 6000
               }
             }
           }
@@ -1512,58 +1600,13 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
-      },
-      "delete": {
-        "tags": ["Médicos"],
-        "summary": "Eliminar un médico (hard delete)",
-        "description": "Elimina físicamente el registro del médico de la base de datos.",
-        "operationId": "deleteMedico",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/idMedicoParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Médico eliminado correctamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessMessageResponse"
-                },
-                "example": {
-                  "ok": true,
-                  "msg": "Médico eliminado correctamente"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "404": {
-            "description": "Médico no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "ok": false,
-                  "msg": "Médico no encontrado"
-                }
-              }
-            }
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
       }
     },
     "/obras-sociales": {
       "get": {
-        "tags": ["Obras Sociales"],
+        "tags": [
+          "Obras Sociales"
+        ],
         "summary": "Obtener todas las obras sociales activas",
         "description": "Retorna la lista de obras sociales con estado activo = 1.",
         "operationId": "getAllObrasSociales",
@@ -1598,7 +1641,9 @@
         }
       },
       "post": {
-        "tags": ["Obras Sociales"],
+        "tags": [
+          "Obras Sociales"
+        ],
         "summary": "Crear una nueva obra social",
         "description": "Registra una nueva obra social. El nombre y la descripción se almacenan en mayúsculas y minúsculas respectivamente, y deben ser únicos.",
         "operationId": "createObraSocial",
@@ -1612,7 +1657,7 @@
               "example": {
                 "nombre": "OSDE",
                 "descripcion": "Plan210",
-                "porcentaje_descuento": 40.0,
+                "porcentaje_descuento": 40,
                 "es_particular": 0
               }
             }
@@ -1664,7 +1709,9 @@
     },
     "/obras-sociales/{id}": {
       "get": {
-        "tags": ["Obras Sociales"],
+        "tags": [
+          "Obras Sociales"
+        ],
         "summary": "Obtener una obra social por ID",
         "description": "Retorna los datos de la obra social activa correspondiente al ID.",
         "operationId": "getObraSocialById",
@@ -1718,7 +1765,9 @@
         }
       },
       "put": {
-        "tags": ["Obras Sociales"],
+        "tags": [
+          "Obras Sociales"
+        ],
         "summary": "Actualizar una obra social",
         "description": "Actualiza todos los campos de una obra social activa.",
         "operationId": "updateObraSocial",
@@ -1737,7 +1786,7 @@
               "example": {
                 "nombre": "OSDE",
                 "descripcion": "Plan310",
-                "porcentaje_descuento": 50.0,
+                "porcentaje_descuento": 50,
                 "es_particular": 0
               }
             }
@@ -1792,7 +1841,9 @@
         }
       },
       "delete": {
-        "tags": ["Obras Sociales"],
+        "tags": [
+          "Obras Sociales"
+        ],
         "summary": "Eliminar una obra social (soft delete)",
         "description": "Marca la obra social como inactiva (activo = 0). El registro no se elimina físicamente.",
         "operationId": "deleteObraSocial",
@@ -1841,7 +1892,9 @@
     },
     "/pacientes": {
       "get": {
-        "tags": ["Pacientes"],
+        "tags": [
+          "Pacientes"
+        ],
         "summary": "Obtener todos los pacientes",
         "description": "Retorna la lista completa de pacientes consultando la vista `v_pacientes`.",
         "operationId": "getAllPacientes",
@@ -1876,7 +1929,9 @@
         }
       },
       "post": {
-        "tags": ["Pacientes"],
+        "tags": [
+          "Pacientes"
+        ],
         "summary": "Crear un nuevo paciente",
         "description": "Registra un nuevo paciente vinculando un usuario con una obra social.",
         "operationId": "createPaciente",
@@ -1929,7 +1984,9 @@
     },
     "/pacientes/{id}": {
       "get": {
-        "tags": ["Pacientes"],
+        "tags": [
+          "Pacientes"
+        ],
         "summary": "Obtener un paciente por ID",
         "description": "Retorna los datos del paciente correspondiente al ID desde la vista `v_pacientes`.",
         "operationId": "getPacienteById",
@@ -1983,7 +2040,9 @@
         }
       },
       "put": {
-        "tags": ["Pacientes"],
+        "tags": [
+          "Pacientes"
+        ],
         "summary": "Actualizar un paciente",
         "description": "Actualiza el usuario y/o la obra social asociada a un paciente.",
         "operationId": "updatePaciente",
@@ -2042,58 +2101,13 @@
             "$ref": "#/components/responses/InternalServerError"
           }
         }
-      },
-      "delete": {
-        "tags": ["Pacientes"],
-        "summary": "Eliminar un paciente (hard delete)",
-        "description": "Elimina físicamente el registro del paciente de la base de datos.",
-        "operationId": "deletePaciente",
-        "parameters": [
-          {
-            "$ref": "#/components/parameters/idParam"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Paciente eliminado correctamente",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessMessageResponse"
-                },
-                "example": {
-                  "ok": true,
-                  "msg": "Paciente eliminado correctamente"
-                }
-              }
-            }
-          },
-          "400": {
-            "$ref": "#/components/responses/ValidationError"
-          },
-          "404": {
-            "description": "Paciente no encontrado",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
-                },
-                "example": {
-                  "ok": false,
-                  "msg": "Paciente no encontrado"
-                }
-              }
-            }
-          },
-          "500": {
-            "$ref": "#/components/responses/InternalServerError"
-          }
-        }
       }
     },
     "/medicos-obras-sociales": {
       "get": {
-        "tags": ["Médicos-Obras Sociales"],
+        "tags": [
+          "Médicos-Obras Sociales"
+        ],
         "summary": "Obtener todos los vínculos activos",
         "description": "Retorna la lista de todas las relaciones activas entre médicos y obras sociales.",
         "operationId": "getAllMedicosObrasSociales",
@@ -2128,7 +2142,9 @@
         }
       },
       "post": {
-        "tags": ["Médicos-Obras Sociales"],
+        "tags": [
+          "Médicos-Obras Sociales"
+        ],
         "summary": "Crear un vínculo médico-obra social",
         "description": "Registra que un médico acepta una determinada obra social.",
         "operationId": "createMedicoObraSocial",
@@ -2189,7 +2205,9 @@
     },
     "/medicos-obras-sociales/{id}": {
       "get": {
-        "tags": ["Médicos-Obras Sociales"],
+        "tags": [
+          "Médicos-Obras Sociales"
+        ],
         "summary": "Obtener un vínculo por ID",
         "description": "Retorna el vínculo activo médico-obra social correspondiente al ID.",
         "operationId": "getMedicoObraSocialById",
@@ -2243,7 +2261,9 @@
         }
       },
       "put": {
-        "tags": ["Médicos-Obras Sociales"],
+        "tags": [
+          "Médicos-Obras Sociales"
+        ],
         "summary": "Actualizar un vínculo médico-obra social",
         "description": "Actualiza el médico y/o la obra social de un vínculo activo existente.",
         "operationId": "updateMedicoObraSocial",
@@ -2304,7 +2324,9 @@
         }
       },
       "delete": {
-        "tags": ["Médicos-Obras Sociales"],
+        "tags": [
+          "Médicos-Obras Sociales"
+        ],
         "summary": "Eliminar un vínculo (soft delete)",
         "description": "Marca el vínculo médico-obra social como inactivo (activo = 0).",
         "operationId": "deleteMedicoObraSocial",
@@ -2353,7 +2375,9 @@
     },
     "/turnos": {
       "get": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Obtener todos los turnos activos",
         "description": "Retorna la lista de todos los turnos con estado activo = 1.",
         "operationId": "getAllTurnos",
@@ -2388,7 +2412,9 @@
         }
       },
       "post": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Reservar un turno",
         "description": "Crea una nueva reserva de turno médico vinculando médico, paciente y obra social. El total se calcula automáticamente.",
         "operationId": "createTurno",
@@ -2402,10 +2428,7 @@
               "example": {
                 "id_medico": 1,
                 "id_paciente": 3,
-                "id_obra_social": 2,
-                "fecha_hora": "2026-06-15T10:00:00.000Z",
-                "valor_total": 0,
-                "atentido": 0
+                "fecha_hora": "2026-06-15 10:00:00"
               }
             }
           }
@@ -2445,7 +2468,9 @@
     },
     "/turnos/estadisticas": {
       "get": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Obtener estadísticas de atenciones del mes anterior",
         "description": "Devuelve la cantidad de turnos y la facturación total agrupada por especialidad mediante un Stored Procedure.",
         "operationId": "getEstadisticas",
@@ -2468,7 +2493,9 @@
     },
     "/turnos/reporte-pdf": {
       "get": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Descargar informe general de turnos en PDF",
         "description": "Genera y descarga un archivo PDF con la auditoría de los turnos activos, fechas y obras sociales mediante pdfkit.",
         "operationId": "descargarReportePDF",
@@ -2484,7 +2511,9 @@
     },
     "/turnos/paciente/{id}": {
       "get": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Obtener turnos de un paciente",
         "description": "Retorna los turnos activos de un paciente filtrando por `id_usuario`. Devuelve únicamente `fecha_hora` y `valor_total` de cada turno.",
         "operationId": "getPatientAppointments",
@@ -2525,7 +2554,7 @@
                           "valor_total": {
                             "type": "number",
                             "format": "float",
-                            "example": 3000.00
+                            "example": 3000
                           }
                         }
                       }
@@ -2560,7 +2589,9 @@
     },
     "/turnos/medico/{id}": {
       "get": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Obtener turnos de un médico",
         "description": "Retorna los turnos activos de un médico filtrando por `id_usuario`. Devuelve únicamente `fecha_hora` y `valor_total` de cada turno.",
         "operationId": "getDoctorAppointments",
@@ -2601,7 +2632,7 @@
                           "valor_total": {
                             "type": "number",
                             "format": "float",
-                            "example": 5000.00
+                            "example": 5000
                           }
                         }
                       }
@@ -2634,9 +2665,65 @@
         }
       }
     },
+    "/turnos/{id}/atender": {
+      "patch": {
+        "tags": [
+          "Turnos"
+        ],
+        "summary": "Marcar turno como atendido",
+        "description": "Permite al médico logueado marcar un turno como atendido (atentido = 1). Solo accesible para el rol MÉDICO.",
+        "operationId": "marcarTurnoAtendido",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/idParam"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Turno marcado como atendido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessageResponse"
+                },
+                "example": {
+                  "ok": true,
+                  "msg": "Turno marcado como atendido"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "description": "Turno no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "ok": false,
+                  "msg": "Turno no encontrado"
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
     "/turnos/{id}": {
       "put": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Actualizar un turno",
         "description": "Actualiza todos los campos de un turno activo existente. Útil para marcar un turno como atendido (atentido = 1).",
         "operationId": "updateTurno",
@@ -2655,9 +2742,7 @@
               "example": {
                 "id_medico": 1,
                 "id_paciente": 3,
-                "id_obra_social": 2,
                 "fecha_hora": "2026-06-15T10:00:00.000Z",
-                "valor_total": 3000.00,
                 "atentido": 1
               }
             }
@@ -2701,7 +2786,9 @@
         }
       },
       "delete": {
-        "tags": ["Turnos"],
+        "tags": [
+          "Turnos"
+        ],
         "summary": "Cancelar un turno (soft delete)",
         "description": "Marca el turno como inactivo (activo = 0). El registro no se elimina físicamente.",
         "operationId": "deleteTurno",
@@ -2744,6 +2831,102 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/medicos/especialidad/{id_especialidad}": {
+      "get": {
+        "tags": [
+          "Médicos"
+        ],
+        "summary": "Listar médicos por especialidad",
+        "description": "Devuelve todos los médicos activos que pertenecen a una especialidad específica.",
+        "parameters": [
+          {
+            "name": "id_especialidad",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "ID de la especialidad"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de médicos de la especialidad",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No autorizado"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "No se encontraron médicos para esa especialidad"
+          },
+          "500": {
+            "description": "Error interno del servidor"
+          }
+        }
+      }
+    },
+    "/usuarios/reset-password": {
+      "patch": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Reinicio de contraseña",
+        "description": "Permite a cualquier usuario autenticado cambiar su contraseña proporcionando la contraseña actual.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "contrasenia_actual",
+                  "contrasenia_nueva"
+                ],
+                "properties": {
+                  "contrasenia_actual": {
+                    "type": "string",
+                    "example": "miPasswordVieja"
+                  },
+                  "contrasenia_nueva": {
+                    "type": "string",
+                    "minLength": 6,
+                    "example": "miPasswordNueva123"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contraseña actualizada con éxito"
+          },
+          "401": {
+            "description": "Contraseña actual incorrecta o no autenticado"
+          },
+          "403": {
+            "description": "Acceso denegado"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          },
+          "500": {
+            "description": "Error interno del servidor"
           }
         }
       }

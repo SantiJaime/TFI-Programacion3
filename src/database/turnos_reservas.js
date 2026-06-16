@@ -21,39 +21,86 @@ export default class TurnosReservas {
     return rows;
   };
 
-  create = async (data) => {
-    const { id_medico, id_paciente, id_obra_social, fecha_hora, atentido } = data;
-
-    const [medicoRows] = await pool.execute("SELECT valor_consulta FROM medicos WHERE id_medico = ?", [id_medico]);
-    const [osRows] = await pool.execute("SELECT es_particular, porcentaje_descuento FROM obras_sociales WHERE id_obra_social = ?", [id_obra_social]);
-
-    if (medicoRows.length === 0 || osRows.length === 0) {
-      throw new Error("Médico u Obra Social no encontrados para calcular el valor total");
-    }
-
-    const valorConsulta = parseFloat(medicoRows[0].valor_consulta);
-    const esParticular = parseInt(osRows[0].es_particular);
-    const porcentajeDescuento = parseFloat(osRows[0].porcentaje_descuento || 0);
-
-    let valorCalculado = valorConsulta;
-    if (esParticular === 0) {
-      valorCalculado = valorConsulta - (porcentajeDescuento * valorConsulta);
-    }
-
-    const [result] = await pool.execute(
-      "INSERT INTO turnos_reservas (id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido) VALUES (?, ?, ?, ?, ?, ?)",
-      [id_medico, id_paciente, id_obra_social, fecha_hora, valorCalculado, atentido || 0]
+  getPacienteIdByUsuario = async (id_usuario) => {
+    const [[row]] = await pool.execute(
+      "SELECT id_paciente FROM pacientes WHERE id_usuario = ?",
+      [id_usuario]
     );
-    return result;
+    return row ? row.id_paciente : null;
+  };
+
+  create = async (data) => {
+    const { id_medico, id_paciente, atentido } = data;
+    const fecha_hora = new Date(data.fecha_hora).toISOString().slice(0, 19).replace('T', ' ');
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      const [[paciente]] = await conn.execute("SELECT id_obra_social FROM pacientes WHERE id_paciente = ?", [id_paciente]);
+      if (!paciente) throw new Error("Paciente no encontrado");
+      const id_obra_social = paciente.id_obra_social;
+
+      const [[medico]] = await conn.execute("SELECT valor_consulta FROM medicos WHERE id_medico = ?", [id_medico]);
+      const [[obraSocial]] = await conn.execute("SELECT es_particular, porcentaje_descuento FROM obras_sociales WHERE id_obra_social = ? AND activo = 1", [id_obra_social]);
+
+      if (!medico || !obraSocial) throw new Error("Médico u Obra Social no encontrados para calcular el valor total");
+
+      const valorConsulta = parseFloat(medico.valor_consulta);
+      const porcentajeDescuento = parseFloat(obraSocial.porcentaje_descuento || 0);
+      const valorCalculado = parseInt(obraSocial.es_particular) === 0
+        ? valorConsulta - ((porcentajeDescuento / 100) * valorConsulta)
+        : valorConsulta;
+
+      const [result] = await conn.execute(
+        "INSERT INTO turnos_reservas (id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido) VALUES (?, ?, ?, ?, ?, ?)",
+        [id_medico, id_paciente, id_obra_social, fecha_hora, valorCalculado, atentido || 0]
+      );
+
+      await conn.commit();
+      return { result, valorCalculado, id_obra_social };
+    } catch (error) {
+      await conn.rollback();
+      throw error;
+    } finally {
+      conn.release();
+    }
   };
 
   update = async (id, data) => {
-    const { id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido } = data;
-    const [result] = await pool.execute(
-      "UPDATE turnos_reservas SET id_medico = ?, id_paciente = ?, id_obra_social = ?, fecha_hora = ?, valor_total = ?, atentido = ? WHERE id_turno_reserva = ? AND activo = 1",
-      [id_medico, id_paciente, id_obra_social, fecha_hora, valor_total, atentido, id]
-    );
-    return result;
+    const { id_medico, id_paciente, atentido } = data;
+    const fecha_hora = new Date(data.fecha_hora).toISOString().slice(0, 19).replace('T', ' ');
+    const conn = await pool.getConnection();
+    try {
+      await conn.beginTransaction();
+
+      const [[paciente]] = await conn.execute("SELECT id_obra_social FROM pacientes WHERE id_paciente = ?", [id_paciente]);
+      if (!paciente) throw new Error("Paciente no encontrado");
+      const id_obra_social = paciente.id_obra_social;
+
+      const [[medico]] = await conn.execute("SELECT valor_consulta FROM medicos WHERE id_medico = ?", [id_medico]);
+      const [[obraSocial]] = await conn.execute("SELECT es_particular, porcentaje_descuento FROM obras_sociales WHERE id_obra_social = ? AND activo = 1", [id_obra_social]);
+
+      if (!medico || !obraSocial) throw new Error("Médico u Obra Social no encontrados para calcular el valor total");
+
+      const valorConsulta = parseFloat(medico.valor_consulta);
+      const porcentajeDescuento = parseFloat(obraSocial.porcentaje_descuento || 0);
+      const valorCalculado = parseInt(obraSocial.es_particular) === 0
+        ? valorConsulta - ((porcentajeDescuento / 100) * valorConsulta)
+        : valorConsulta;
+
+      const [result] = await conn.execute(
+        "UPDATE turnos_reservas SET id_medico = ?, id_paciente = ?, id_obra_social = ?, fecha_hora = ?, valor_total = ?, atentido = ? WHERE id_turno_reserva = ? AND activo = 1",
+        [id_medico, id_paciente, id_obra_social, fecha_hora, valorCalculado, atentido, id]
+      );
+
+      await conn.commit();
+      return result;
+    } catch (error) {
+      await conn.rollback();
+      throw error;
+    } finally {
+      conn.release();
+    }
   };
 
   marcarAtendido = async (id) => {
@@ -84,18 +131,7 @@ export default class TurnosReservas {
   };
 
   getReporteDatos = async () => {
-    const query = `
-      SELECT 
-        tr.id_turno_reserva,
-        tr.fecha_hora,
-        tr.valor_total,
-        os.nombre AS obra_social_nombre
-      FROM turnos_reservas tr
-      INNER JOIN obras_sociales os ON tr.id_obra_social = os.id_obra_social
-      WHERE tr.activo = 1
-      ORDER BY tr.fecha_hora DESC
-    `;
-    const [rows] = await pool.query(query);
-    return rows;
+    const [rows] = await pool.execute("CALL ObtenerReporteDatos()");
+    return rows[0];
   };
 }

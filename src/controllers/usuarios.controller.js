@@ -34,11 +34,12 @@ export default class UsuariosController {
 
   create = async (req, res) => {
     try {
-      const result = await this.usuariosService.create(req.body);
+      const foto_path = req.file ? req.file.path.replace(/\\/g, "/") : "";
+      const result = await this.usuariosService.create({ ...req.body, foto_path });
       res.status(201).send({
         ok: true,
         msg: "Usuario creado con éxito",
-        data: { id_usuario: result.insertId, ...req.body },
+        data: { id_usuario: result.insertId, ...req.body, foto_path },
       });
     } catch (error) {
       console.error(error);
@@ -47,6 +48,9 @@ export default class UsuariosController {
           .status(400)
           .send({ ok: false, msg: "Documento o email ya registrado" });
       }
+      if (error.message === "Solo se permiten imágenes JPG, PNG o WEBP") {
+        return res.status(400).send({ ok: false, msg: error.message });
+      }
       res.status(500).send({ ok: false, msg: "Error al crear el usuario" });
     }
   };
@@ -54,7 +58,8 @@ export default class UsuariosController {
   update = async (req, res) => {
     try {
       const { id } = req.params;
-      const result = await this.usuariosService.update(id, req.body);
+      const foto_path = req.file ? req.file.path.replace(/\\/g, "/") : undefined;
+      const result = await this.usuariosService.update(id, { ...req.body, foto_path });
       if (result.affectedRows === 0) {
         return res
           .status(404)
@@ -63,6 +68,9 @@ export default class UsuariosController {
       res.status(200).send({ ok: true, msg: "Usuario actualizado con éxito" });
     } catch (error) {
       console.error(error);
+      if (error.message === "Solo se permiten imágenes JPG, PNG o WEBP") {
+        return res.status(400).send({ ok: false, msg: error.message });
+      }
       res.status(500).send({ ok: false, msg: "Error al actualizar el usuario" });
     }
   };
@@ -82,6 +90,25 @@ export default class UsuariosController {
     } catch (error) {
       console.error(error);
       res.status(500).send({ ok: false, msg: "Error al eliminar el usuario" });
+    }
+  };
+
+  resetPassword = async (req, res) => {
+    try {
+      const id = req.user.id_usuario;
+      const { contrasenia_actual, contrasenia_nueva } = req.body;
+
+      const result = await this.usuariosService.resetPassword(id, contrasenia_actual, contrasenia_nueva);
+      if (result === null) {
+        return res.status(401).send({ ok: false, msg: "La contraseña actual es incorrecta" });
+      }
+      if (result.affectedRows === 0) {
+        return res.status(404).send({ ok: false, msg: "Usuario no encontrado" });
+      }
+      res.status(200).send({ ok: true, msg: "Contraseña actualizada con éxito" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send({ ok: false, msg: "Error al actualizar la contraseña" });
     }
   };
 

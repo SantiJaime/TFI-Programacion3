@@ -2,14 +2,30 @@ import { Router } from "express";
 import { check, param } from "express-validator";
 import MedicosController from "../../controllers/medicos.controller.js";
 import { validarCampos } from "../../middleware/validarCampos.js";
+import auth, { ROLES } from "../../middleware/auth.js";
 
 const router = Router();
 const medicosController = new MedicosController();
 
-router.get("/", medicosController.getAll);
+router.get("/", auth(ROLES.PACIENTE, ROLES.ADMIN), medicosController.getAll);
+
+router.get(
+  "/especialidad/:id_especialidad",
+  auth(ROLES.PACIENTE, ROLES.ADMIN),
+  [
+    param("id_especialidad")
+      .notEmpty()
+      .withMessage("El ID de especialidad es obligatorio")
+      .isInt({ min: 1 })
+      .withMessage("El ID de especialidad debe ser un entero positivo"),
+    validarCampos,
+  ],
+  medicosController.getByEspecialidad,
+);
 
 router.get(
   "/:id_medico",
+  auth(ROLES.PACIENTE, ROLES.ADMIN),
   [
     param("id_medico")
       .notEmpty()
@@ -23,6 +39,7 @@ router.get(
 
 router.post(
   "/",
+  auth(ROLES.ADMIN),
   [
     check("id_usuario")
       .notEmpty()
@@ -55,6 +72,7 @@ router.post(
 
 router.put(
   "/:id_medico",
+  auth(ROLES.ADMIN),
   [
     param("id_medico")
       .notEmpty()
@@ -88,19 +106,6 @@ router.put(
     validarCampos,
   ],
   medicosController.update,
-);
-
-router.delete(
-  "/:id_medico",
-  [
-    param("id_medico")
-      .notEmpty()
-      .withMessage("El ID de médico es obligatorio")
-      .isInt({ min: 1 })
-      .withMessage("El ID de médico debe ser un entero positivo"),
-    validarCampos,
-  ],
-  medicosController.delete,
 );
 
 export default router;

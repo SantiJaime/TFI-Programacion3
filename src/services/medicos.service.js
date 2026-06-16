@@ -13,6 +13,10 @@ export default class MedicosService {
     return this.medicos.getById(id);
   };
 
+  getByEspecialidad = (id_especialidad) => {
+    return this.medicos.getByEspecialidad(id_especialidad);
+  };
+
   create = (data) => {
     return this.medicos.create(data);
   };
@@ -21,7 +25,4 @@ export default class MedicosService {
     return this.medicos.update(id, data);
   };
 
-  delete = (id) => {
-    return this.medicos.delete(id);
-  };
 }

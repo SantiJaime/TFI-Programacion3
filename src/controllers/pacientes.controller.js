@@ -57,17 +57,4 @@ export default class PacientesController {
     }
   };
 
-  delete = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const result = await this.pacientesService.delete(id);
-      if (result.affectedRows === 0) {
-        return res.status(404).send({ ok: false, msg: "Paciente no encontrado" });
-      }
-      res.status(200).send({ ok: true, msg: "Paciente eliminado correctamente" });
-    } catch (error) {
-      console.error(`Error en delete Pacientes (ID: ${req.params.id}):`, error);
-      res.status(500).send({ ok: false, msg: "Error al intentar eliminar el paciente" });
-    }
-  };
 }
